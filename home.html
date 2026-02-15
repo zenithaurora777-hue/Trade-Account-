@@ -2,82 +2,84 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trading Dashboard</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard</title>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,Segoe UI,Roboto;}
-body{background:#f4f6f9;color:#111;transition:.35s;}
-body.dark{background:#0b0f14;color:white;}
-header{display:flex;justify-content:space-between;align-items:center;padding:18px 24px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.05);transition:.35s;}
-body.dark header{background:#111;}
-header h1{font-size:20px;}
-.theme{cursor:pointer;font-size:16px;}
-.wallet{padding:24px;display:flex;flex-direction:column;gap:12px;}
-.card{background:#fff;padding:16px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.08);transition:.35s;}
-body.dark .card{background:#111}
-.card h2{font-size:16px;margin-bottom:8px;}
-.card p{font-size:24px;font-weight:700;}
-nav{position:fixed;bottom:0;left:0;width:100%;display:flex;justify-content:space-around;padding:12px 0;background:#fff;box-shadow:0 -2px 10px rgba(0,0,0,.05);transition:.35s;}
-body.dark nav{background:#111;}
-nav a{text-decoration:none;color:#111;font-weight:600;}
-body.dark nav a{color:white;}
-canvas{background:#fdfdfd;border-radius:12px;}
-body.dark canvas{background:#111;}
+body{background:#0b0f14;color:white;transition:.35s;}
+body.light{background:#f4f6f9;color:#111;}
+header{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;background:#11161d;}
+body.light header{background:#fff;color:#111;}
+header h1{font-size:20px;font-weight:600;}
+nav a{color:#f5c518;text-decoration:none;font-weight:600;margin-left:16px;}
+body.light nav a{color:#f5c518;}
+section{padding:20px;}
+.card{background:#11161d;border-radius:16px;padding:20px;margin-bottom:20px;transition:.35s;}
+body.light .card{background:#fff;color:#111;}
+.card h2{margin-bottom:12px;font-size:16px;color:#f5c518;}
+.card canvas{width:100%;height:200px;}
+.wallets{display:flex;gap:12px;overflow-x:auto;padding-bottom:12px;}
+.wallet{flex:0 0 150px;background:#222831;padding:16px;border-radius:14px;text-align:center;transition:.35s;}
+body.light .wallet{background:#eee;color:#111;}
+.wallet h3{font-size:14px;margin-bottom:6px;}
+.wallet p{font-size:18px;font-weight:600;}
+.theme{position:fixed;top:12px;right:12px;cursor:pointer;font-size:14px;padding:6px 10px;border-radius:8px;background:#f5c518;color:#111;transition:.35s;}
+body.light .theme{background:#111;color:white;}
 </style>
 </head>
 <body>
+<div class="theme" onclick="toggleTheme()">☀︎ / 🌙</div>
 <header>
 <h1>Dashboard</h1>
-<div class="theme" onclick="toggleTheme()">☀︎ / 🌙</div>
+<nav>
+<a href="trade.html">Trade</a>
+<a href="withdrawal.html">Withdraw</a>
+</nav>
 </header>
 
-<div class="wallet">
-  <div class="card">
-    <h2>Wallet Balance</h2>
-    <p id="balance">$0.00</p>
-  </div>
-  <div class="card">
-    <h2>Portfolio Chart</h2>
-    <canvas id="chart" width="350" height="150"></canvas>
-  </div>
+<section>
+<div class="wallets">
+<div class="wallet"><h3>BTC</h3><p id="btcBalance">0.012</p></div>
+<div class="wallet"><h3>ETH</h3><p id="ethBalance">0.45</p></div>
+<div class="wallet"><h3>USDT</h3><p id="usdtBalance">1500</p></div>
 </div>
 
-<nav>
-<a href="home.html">🏠 Home</a>
-<a href="trade.html">💹 Trade</a>
-<a href="withdrawal.html">💰 Withdraw</a>
-</nav>
+<div class="card">
+<h2>BTC/USDT Chart</h2>
+<canvas id="btcChart"></canvas>
+</div>
+<div class="card">
+<h2>ETH/USDT Chart</h2>
+<canvas id="ethChart"></canvas>
+</div>
+</section>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-// Theme
-function toggleTheme(){
-  document.body.classList.toggle("dark");
-  localStorage.setItem("theme",document.body.classList.contains("dark")?"dark":"light");
-}
-if(localStorage.getItem("theme")==="dark")document.body.classList.add("dark");
+// Theme toggle
+function toggleTheme(){document.body.classList.toggle("light");}
 
-// Balance
-let balance = parseFloat(localStorage.getItem("balance")||"1000");
-document.getElementById("balance").innerText="$"+balance.toFixed(2);
-
-// Chart
-const ctx = document.getElementById('chart').getContext('2d');
-const chart = new Chart(ctx,{
-  type:'line',
-  data:{
-    labels:Array.from({length:30},(_,i)=>i+1),
-    datasets:[{
-      label:'Portfolio Value',
-      data:Array.from({length:30},()=>balance + (Math.random()-0.5)*200),
-      borderColor:'#f5c518',
-      backgroundColor:'rgba(245,197,24,0.2)',
-      tension:0.4,
-      fill:true
-    }]
-  },
-  options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:false}}}
+// Dummy live charts
+function createChart(id, label){
+const ctx=document.getElementById(id).getContext('2d');
+return new Chart(ctx,{
+type:'line',
+data:{labels:Array.from({length:60},(_,i)=>i),datasets:[{label:label,data:Array.from({length:60},()=>Math.random()*100),borderColor:'#f5c518',backgroundColor:'rgba(245,197,24,0.2)',tension:0.4}]} ,
+options:{animation:{duration:2000},responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
 });
+}
+const btcChart=createChart('btcChart','BTC/USDT');
+const ethChart=createChart('ethChart','ETH/USDT');
+
+// Live updating simulation
+setInterval(()=>{
+btcChart.data.datasets[0].data.push(Math.random()*100);
+btcChart.data.datasets[0].data.shift();
+btcChart.update();
+ethChart.data.datasets[0].data.push(Math.random()*100);
+ethChart.data.datasets[0].data.shift();
+},1500);
 </script>
 </body>
 </html>
