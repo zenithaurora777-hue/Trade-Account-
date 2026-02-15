@@ -1,85 +1,330 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Dashboard</title>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,Segoe UI,Roboto;}
-body{background:#0b0f14;color:white;transition:.35s;}
-body.light{background:#f4f6f9;color:#111;}
-header{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;background:#11161d;}
-body.light header{background:#fff;color:#111;}
-header h1{font-size:20px;font-weight:600;}
-nav a{color:#f5c518;text-decoration:none;font-weight:600;margin-left:16px;}
-body.light nav a{color:#f5c518;}
-section{padding:20px;}
-.card{background:#11161d;border-radius:16px;padding:20px;margin-bottom:20px;transition:.35s;}
-body.light .card{background:#fff;color:#111;}
-.card h2{margin-bottom:12px;font-size:16px;color:#f5c518;}
-.card canvas{width:100%;height:200px;}
-.wallets{display:flex;gap:12px;overflow-x:auto;padding-bottom:12px;}
-.wallet{flex:0 0 150px;background:#222831;padding:16px;border-radius:14px;text-align:center;transition:.35s;}
-body.light .wallet{background:#eee;color:#111;}
-.wallet h3{font-size:14px;margin-bottom:6px;}
-.wallet p{font-size:18px;font-weight:600;}
-.theme{position:fixed;top:12px;right:12px;cursor:pointer;font-size:14px;padding:6px 10px;border-radius:8px;background:#f5c518;color:#111;transition:.35s;}
-body.light .theme{background:#111;color:white;}
+:root{
+  --bg-light:#f4f6f9; --bg-dark:#0b0b0d;
+  --card-light:#fff; --card-dark:#111114;
+  --text-light:#111; --text-dark:#f2f2f2;
+  --muted:#9b9b9b; --line:#1f1f25; --binance:#f0b90b; --danger:#ff3b3b; --success:#00c389;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;}
+body{background:var(--bg-light);color:var(--text-light);min-height:100vh;padding-bottom:80px;transition:.35s;}
+body.dark{background:var(--bg-dark);color:var(--text-dark);}
+.topbar{
+  position:sticky;top:0;z-index:99;
+  background:rgba(10,10,12,.95);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);padding:14px;display:flex;align-items:center;gap:12px;
+}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;}
+.brand img{width:40px;height:40px;border-radius:14px;border:1px solid var(--line);padding:6px;}
+.title span{font-size:12px;color:var(--muted);}
+.search{flex:1;display:flex;align-items:center;gap:8px;background:#0f0f12;border:1px solid var(--line);border-radius:14px;padding:10px;}
+.search input{width:100%;background:transparent;border:none;outline:none;color:white;}
+.icon-btn{width:40px;height:40px;border-radius:14px;background:#0f0f12;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--binance);}
+.wrap{padding:14px;display:grid;gap:14px;}
+.card{background:var(--card-light);border:1px solid var(--line);border-radius:20px;padding:14px;box-shadow:0 10px 30px rgba(0,0,0,.15);transition:.35s;}
+body.dark .card{background:var(--card-dark);}
+.chart{height:380px;border-radius:16px;border:1px solid var(--line);overflow:hidden;}
+.value{font-size:34px;font-weight:900;color:var(--binance);}
+.profit{font-size:22px;font-weight:900;}
+.green{color:var(--success);} .red{color:var(--danger);}
+.btn{padding:14px;border-radius:18px;border:none;font-weight:900;background:var(--binance);margin-top:10px;cursor:pointer;color:black;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.coin-card{padding:16px;border-radius:22px;border:1px solid var(--line);background:#f0f0f0;}
+body.dark .coin-card{background:#111114;}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:10px;}
+body.dark .bottom-nav{background:#0f0f12;}
+.nav-item{display:flex;flex-direction:column;align-items:center;font-size:11px;color:var(--muted);text-decoration:none;}
+.nav-item.active{color:var(--binance);}
+.theme{position:absolute;top:12px;right:12px;cursor:pointer;font-size:14px;padding:6px 10px;border-radius:8px;background:#eee;color:#111;transition:.35s;}
+body.dark .theme{background:#222;color:white;}
+
+/* =========================================================
+   ADDED ONLY: MARKET SUMMARY + BUY/SELL STYLES (MINIMAL)
+========================================================= */
+.section-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+}
+.pill{
+  background: rgba(240,185,11,.15);
+  border: 1px solid rgba(240,185,11,.35);
+  color: var(--binance);
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.table{
+  width:100%;
+  border-collapse:collapse;
+  overflow:hidden;
+  border-radius:14px;
+}
+.table th, .table td{
+  text-align:left;
+  padding: 12px 6px;
+  font-size: 14px;
+}
+.table th{
+  color: var(--muted);
+  font-weight: 800;
+  padding-top: 6px;
+}
+.table tr:not(:last-child) td{
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+body:not(.dark) .table tr:not(:last-child) td{
+  border-bottom: 1px solid rgba(0,0,0,.08);
+}
+.table td:last-child, .table th:last-child{
+  text-align:right;
+  font-weight:800;
+}
+.field{
+  margin-top: 10px;
+}
+.label{
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+.trade-select, .trade-input{
+  width:100%;
+  border-radius: 16px;
+  padding: 14px 14px;
+  font-size: 16px;
+  outline:none;
+  border: 1px solid var(--line);
+  transition:.25s;
+}
+.trade-select{
+  background:#0f0f12;
+  color:#fff;
+}
+.trade-input{
+  background:#0f0f12;
+  color:#fff;
+}
+body:not(.dark) .trade-select,
+body:not(.dark) .trade-input{
+  background:#f0f0f0;
+  color:#111;
+}
+.actions{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 14px;
+}
+.btn-buy{
+  padding:14px;
+  border-radius:999px;
+  border:none;
+  font-weight:900;
+  background: var(--binance);
+  color:#111;
+  cursor:pointer;
+}
+.btn-sell{
+  padding:14px;
+  border-radius:999px;
+  border:none;
+  font-weight:900;
+  background:#fff;
+  color:#111;
+  cursor:pointer;
+  border:2px solid rgba(0,0,0,.08);
+}
+body.dark .btn-sell{
+  background:#fff;
+  color:#111;
+  border:2px solid rgba(255,255,255,.85);
+}
 </style>
 </head>
 <body>
+<script>if(!localStorage.getItem("loggedin")) location.href="index.html";</script>
+
 <div class="theme" onclick="toggleTheme()">☀︎ / 🌙</div>
-<header>
-<h1>Dashboard</h1>
-<nav>
-<a href="trade.html">Trade</a>
-<a href="withdrawal.html">Withdraw</a>
-</nav>
+
+<header class="topbar">
+  <div class="brand">
+    <img src="logo.png" alt="Logo">
+    <div class="title"><strong>Dashboard</strong><span>Live Market Overview</span></div>
+  </div>
+  <div class="search">
+    <span class="material-icons">search</span>
+    <input id="search" placeholder="Search coin, pair, market...">
+  </div>
+  <a class="icon-btn" href="index.html" onclick="logout()"><span class="material-icons">logout</span></a>
 </header>
 
-<section>
-<div class="wallets">
-<div class="wallet"><h3>BTC</h3><p id="btcBalance">0.012</p></div>
-<div class="wallet"><h3>ETH</h3><p id="ethBalance">0.45</p></div>
-<div class="wallet"><h3>USDT</h3><p id="usdtBalance">1500</p></div>
-</div>
+<main class="wrap">
 
-<div class="card">
-<h2>BTC/USDT Chart</h2>
-<canvas id="btcChart"></canvas>
-</div>
-<div class="card">
-<h2>ETH/USDT Chart</h2>
-<canvas id="ethChart"></canvas>
-</div>
-</section>
+  <section class="card">
+    <h3>Select Pair</h3>
+    <select id="pairSelect">
+      <option>BTC/USDT</option>
+      <option>ETH/USDT</option>
+      <option>SOL/USDT</option>
+      <option>BNB/USDT</option>
+      <option>ETH/BTC</option>
+      <option>BTC/ETH</option>
+      <option>BNB/BTC</option>
+    </select>
+  </section>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <section class="card">
+    <div class="chart"><div id="tradingview_chart" style="height:100%;width:100%;"></div></div>
+  </section>
+
+  <div class="grid-2">
+    <div class="coin-card"><b>BTC</b><br><span style="color:var(--muted)">Bitcoin</span></div>
+    <div class="coin-card"><b>SOL</b><br><span style="color:var(--muted)">Solana</span></div>
+  </div>
+
+  <!-- MARKET SUMMARY -->
+  <div class="card">
+    <div class="section-head">
+      <h3>Market Summary</h3>
+      <button class="pill">Stats</button>
+    </div>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Market Price</td>
+          <td>$19,234.37</td>
+        </tr>
+        <tr>
+          <td>Trade Volume</td>
+          <td>$345,146,700.27</td>
+        </tr>
+        <tr>
+          <td>BTC Volume</td>
+          <td>213,345.129</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- BUY / SELL -->
+  <div class="card">
+    <div class="section-head">
+      <h3>Buy / Sell</h3>
+      <button class="pill">Trade</button>
+    </div>
+
+    <div class="field">
+      <div class="label">Symbol</div>
+      <select class="trade-select" id="tradeSymbol">
+        <option>BTC/USDT</option>
+        <option>ETH/USDT</option>
+        <option>SOL/USDT</option>
+        <option>BNB/USDT</option>
+        <option>ETH/BTC</option>
+        <option>BTC/ETH</option>
+        <option>BNB/BTC</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <div class="label">Shares</div>
+      <input class="trade-input" id="tradeShares" type="number" value="50000" />
+    </div>
+
+    <div class="field">
+      <div class="label">Limit Price</div>
+      <input class="trade-input" id="tradeLimit" type="number" value="1000" />
+    </div>
+
+    <div class="actions">
+      <button class="btn-buy" onclick="placeOrder('BUY')">BUY</button>
+      <button class="btn-sell" onclick="placeOrder('SELL')">SELL</button>
+    </div>
+  </div>
+
+</main>
+
+<nav class="bottom-nav">
+  <a class="nav-item active" href="home.html"><span class="material-icons">home</span>Home</a>
+  <a class="nav-item" href="trade.html"><span class="material-icons">swap_horiz</span>Trade</a>
+  <a class="nav-item" href="index.html" onclick="logout()"><span class="material-icons">logout</span>Logout</a>
+</nav>
+
+<script src="https://s3.tradingview.com/tv.js"></script>
 <script>
-// Theme toggle
-function toggleTheme(){document.body.classList.toggle("light");}
+let tvWidget = null;
 
-// Dummy live charts
-function createChart(id, label){
-const ctx=document.getElementById(id).getContext('2d');
-return new Chart(ctx,{
-type:'line',
-data:{labels:Array.from({length:60},(_,i)=>i),datasets:[{label:label,data:Array.from({length:60},()=>Math.random()*100),borderColor:'#f5c518',backgroundColor:'rgba(245,197,24,0.2)',tension:0.4}]} ,
-options:{animation:{duration:2000},responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
-});
+function pairToSymbol(pair){
+  return "BINANCE:" + pair.replace("/", "");
 }
-const btcChart=createChart('btcChart','BTC/USDT');
-const ethChart=createChart('ethChart','ETH/USDT');
 
-// Live updating simulation
-setInterval(()=>{
-btcChart.data.datasets[0].data.push(Math.random()*100);
-btcChart.data.datasets[0].data.shift();
-btcChart.update();
-ethChart.data.datasets[0].data.push(Math.random()*100);
-ethChart.data.datasets[0].data.shift();
-},1500);
+function loadChart(pair){
+  const symbol = pairToSymbol(pair);
+  document.getElementById("tradingview_chart").innerHTML = "";
+  tvWidget = new TradingView.widget({
+    container_id: "tradingview_chart",
+    width: "100%",
+    height: "100%",
+    symbol: symbol,
+    interval: "15",
+    theme: "dark",
+    style: "1",
+    toolbar_bg: "#fff",
+    hide_side_toolbar: false,
+    allow_symbol_change: false
+  });
+}
+
+loadChart("BTC/USDT");
+
+document.getElementById("pairSelect").addEventListener("change", function(){
+  loadChart(this.value);
+  document.getElementById("tradeSymbol").value = this.value;
+});
+
+document.getElementById("tradeSymbol").addEventListener("change", function(){
+  document.getElementById("pairSelect").value = this.value;
+  loadChart(this.value);
+});
+
+function placeOrder(type){
+  const sym = document.getElementById("tradeSymbol").value;
+  const shares = document.getElementById("tradeShares").value;
+  const limit = document.getElementById("tradeLimit").value;
+  if(!shares || Number(shares) <= 0) return alert("Enter shares amount");
+  if(!limit || Number(limit) <= 0) return alert("Enter a valid limit price");
+  saveHistory(type + " " + shares + " shares of " + sym + " @ " + limit);
+  alert(type + " order placed:\n\n" + sym + "\nShares: " + shares + "\nLimit: " + limit);
+}
+
+function saveHistory(txt){
+  let h=JSON.parse(localStorage.getItem("history")||"[]");
+  h.unshift(new Date().toLocaleString()+" — "+txt);
+  localStorage.setItem("history",JSON.stringify(h));
+}
+document.getElementById("search").oninput=function(){ console.log("Searching:",this.value); }
+function logout(){ localStorage.removeItem("loggedin"); location.href="index.html"; }
+function toggleTheme(){ document.body.classList.toggle("dark"); localStorage.setItem("theme",document.body.classList.contains("dark")?"dark":"light"); }
+if(localStorage.getItem("theme")==="dark")document.body.classList.add("dark");
 </script>
 </body>
 </html>
