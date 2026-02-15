@@ -2,73 +2,249 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Withdraw Funds</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Withdrawal</title>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,Segoe UI,Roboto;}
-body{background:#0b0f14;color:white;transition:.35s;}
-body.light{background:#f4f6f9;color:#111;}
-header{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;background:#11161d;}
-body.light header{background:#fff;color:#111;}
-header h1{font-size:20px;font-weight:600;}
-nav a{color:#f5c518;text-decoration:none;font-weight:600;margin-left:16px;}
-body.light nav a{color:#f5c518;}
-section{padding:20px;}
-.card{background:#11161d;border-radius:16px;padding:20px;margin-bottom:20px;transition:.35s;}
-body.light .card{background:#fff;color:#111;}
-.card h2{margin-bottom:12px;font-size:16px;color:#f5c518;}
-.field{margin-bottom:16px;}
-input,select{width:100%;padding:14px;border-radius:12px;border:1px solid #333;background:#222831;color:white;font-size:16px;outline:none;transition:.25s;}
-body.light input,body.light select{background:#eee;color:#111;border:1px solid #ccc;}
-button{padding:14px;width:100%;border:none;border-radius:12px;background:#f5c518;color:#111;font-weight:600;cursor:pointer;}
-.theme{position:fixed;top:12px;right:12px;cursor:pointer;font-size:14px;padding:6px 10px;border-radius:8px;background:#f5c518;color:#111;transition:.35s;}
-body.light .theme{background:#111;color:white;}
+body {
+  background: #f4f6f9;
+  color: #111;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  transition: .35s;
+}
+body.dark {
+  background: #0b0b0d;
+  color: #f2f2f2;
+}
+.card {
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  padding: 20px;
+  width: 350px;
+  transition: .35s;
+}
+body.dark .card {
+  background: #111114;
+  border: 1px solid #1f1f25;
+}
+.card h2 {
+  margin-bottom: 15px;
+}
+input, select, button {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 4px;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #111;
+  transition: .3s;
+}
+body.dark input, body.dark select, body.dark button {
+  background: #0f0f12;
+  color: white;
+  border: 1px solid #1f1f25;
+}
+button {
+  background: #f0b90b;
+  color: black;
+  font-weight: 900;
+  cursor: pointer;
+  border: none;
+}
+#loader {
+  display: none;
+  text-align: center;
+  margin: 10px 0;
+}
+.success {
+  color: #00c389;
+  font-weight: 900;
+  text-align: center;
+  margin-top: 10px;
+}
+.warning {
+  color: red;
+  font-weight: bold;
+  font-size: 14px;
+  margin: 0 0 10px 0;
+}
+.theme {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #eee;
+  color: #111;
+  transition: .35s;
+}
+body.dark .theme {
+  background: #222;
+  color: white;
+}
 </style>
 </head>
 <body>
 <div class="theme" onclick="toggleTheme()">☀︎ / 🌙</div>
-<header>
-<h1>Withdraw Funds</h1>
-<nav>
-<a href="home.html">Home</a>
-<a href="trade.html">Trade</a>
-</nav>
-</header>
 
-<section>
 <div class="card">
-<h2>Withdrawal Form</h2>
-<form id="withdrawForm" action="https://formspree.io/f/xjgewkoy" method="POST">
-<div class="field">
-<label>Wallet Address</label>
-<input type="text" name="wallet" placeholder="Enter wallet address" required>
+  <h2>Withdraw Funds</h2>
+  
+  <label>Wallet Address</label>
+  <input type="text" id="wallet" placeholder="Enter wallet address">
+  <div id="walletWarn" class="warning"></div>
+
+  <label>Coin</label>
+  <select id="coin" onchange="updateNetwork()">
+    <option value="USDT">USDT</option>
+    <option value="BTC">BTC</option>
+    <option value="SOL">SOL</option>
+    <option value="ETH">ETH</option>
+    <option value="BNB">BNB</option>
+  </select>
+
+  <label>Network</label>
+  <select id="network">
+    <option value="TRC20">TRC20</option>
+    <option value="ERC20">ERC20</option>
+    <option value="BEP20">BEP20</option>
+  </select>
+  <div id="networkWarn" class="warning"></div>
+
+  <label>Amount</label>
+  <input type="text" id="amount" readonly>
+  <div id="amountWarn" class="warning"></div>
+
+  <button onclick="makeWithdrawal()">Withdraw</button>
+  <div id="loader">Processing withdrawal...</div>
+  <div class="success" id="successMsg"></div>
 </div>
-<div class="field">
-<label>Currency</label>
-<select name="currency" required>
-<option value="">Select Currency</option>
-<option value="BTC">BTC</option>
-<option value="ETH">ETH</option>
-<option value="USDT">USDT</option>
-</select>
-</div>
-<div class="field">
-<label>Amount</label>
-<input type="number" name="amount" placeholder="0.00" step="any" required>
-</div>
-<button type="submit">Withdraw</button>
-</form>
-</div>
-</section>
 
 <script>
-function toggleTheme(){document.body.classList.toggle("light");}
-const form=document.getElementById('withdrawForm');
-form.addEventListener('submit',e=>{
-e.preventDefault();
-alert('Withdrawal request submitted!');
-form.reset();
-});
+let balance = Number(localStorage.getItem("bal") || 0);
+document.getElementById("amount").value = "$" + balance;
+
+// Redirect if balance is zero
+if(balance <= 0) {
+  alert("No funds available to withdraw. Returning to Trade Room.");
+  setTimeout(()=>{ window.location.href = "trade.html"; }, 1000);
+}
+
+// Coin -> network mapping
+const coinNetworks = {
+  USDT: ["TRC20", "ERC20", "BEP20"],
+  BTC: ["BTC"],
+  SOL: ["SOL"],
+  ETH: ["ERC20"],
+  BNB: ["BEP20"]
+};
+
+// Wallet regex patterns (basic examples, can be adjusted)
+const walletRegex = {
+  USDT: /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$|^T[a-zA-Z0-9]{33}$/, // TRC20/TRC20/USDT-like
+  BTC: /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/,
+  SOL: /^[1-9A-HJ-NP-Za-km-z]{32,44}$/,
+  ETH: /^0x[a-fA-F0-9]{40}$/,
+  BNB: /^bnb[a-z0-9]{39}$/
+};
+
+function updateNetwork() {
+  let coin = document.getElementById("coin").value;
+  let n = document.getElementById("network");
+  n.innerHTML = "";
+  coinNetworks[coin].forEach(net => {
+    let option = document.createElement("option");
+    option.value = net;
+    option.text = net;
+    n.add(option);
+  });
+}
+
+function showWarning(elementId, message) {
+  document.getElementById(elementId).innerText = "¡ " + message;
+}
+
+function clearWarnings() {
+  document.getElementById("walletWarn").innerText = "";
+  document.getElementById("networkWarn").innerText = "";
+  document.getElementById("amountWarn").innerText = "";
+}
+
+function makeWithdrawal() {
+  clearWarnings();
+  let wallet = document.getElementById("wallet").value.trim();
+  let coin = document.getElementById("coin").value;
+  let network = document.getElementById("network").value;
+  let amt = balance;
+
+  // Wallet validation
+  if(!walletRegex[coin].test(wallet)) {
+    showWarning("walletWarn", "Wallet address format is wrong");
+    return;
+  }
+
+  // Network validation
+  if(!coinNetworks[coin].includes(network)) {
+    showWarning("networkWarn", "Network address is wrong for selected coin");
+    return;
+  }
+
+  // Amount validation
+  if(amt <= 0) {
+    showWarning("amountWarn", "Insufficient balance");
+    return;
+  }
+
+  let tradeEndTime = Number(localStorage.getItem("tradeEndTime") || 0);
+  if(Date.now() < tradeEndTime){
+    alert("Withdrawal locked. Minimum trade duration not reached.");
+    window.location.href = "trade.html";
+    return;
+  }
+
+  // Process withdrawal
+  document.getElementById("loader").style.display = "block";
+  document.getElementById("successMsg").innerText = "";
+
+  setTimeout(()=>{
+    document.getElementById("loader").style.display = "none";
+    document.getElementById("successMsg").innerText = "Withdrawal Successful!";
+    saveHistory(`Withdrawn ${amt} ${coin} to ${wallet} via ${network}`);
+    localStorage.setItem("bal", 0);
+    document.getElementById("amount").value = "$0";
+    setTimeout(()=>{ window.location.href = "trade.html"; }, 1500);
+  }, 2000);
+}
+
+function saveHistory(txt){
+  let h = JSON.parse(localStorage.getItem("history") || "[]");
+  h.unshift(new Date().toLocaleString() + " — " + txt);
+  localStorage.setItem("history", JSON.stringify(h));
+}
+
+window.onload = ()=>{
+  if(!localStorage.getItem("tradeEndTime")){
+    alert("No trade info. Returning to trade page.");
+    window.location.href = "trade.html";
+  }
+  updateNetwork();
+}
+
+function toggleTheme(){
+  document.body.classList.toggle("dark");
+  localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
+}
+
+if(localStorage.getItem("theme") === "dark") document.body.classList.add("dark");
 </script>
 </body>
 </html>
