@@ -1,219 +1,250 @@
-<!DOCTYPE html>  <html lang="en">    <head>    
-<meta charset="UTF-8">    
-<meta name="viewport" content="width=device-width, initial-scale=1.0">    
-<title>Trade Room</title>    
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">    
-<style>    
-:root{    
-  --bg-light:#f4f6f9; --bg-dark:#0b0b0d;    
-  --card-light:#fff; --card-dark:#111114;    
-  --text-light:#111; --text-dark:#f2f2f2;    
-  --muted:#9b9b9b; --line:#1f1f25; --binance:#f0b90b; --danger:#ff3b3b; --success:#00c389;    
-  --hold:#00bfff; --cancel:#ff4500; --paused:#ffcc00;    
-}    
-*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;}    
-body{background:var(--bg-light);color:var(--text-light);padding-bottom:90px;transition:.35s;}    
-body.dark{background:var(--bg-dark);color:var(--text-dark);}    
-.topbar{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);padding:14px;display:flex;justify-content:space-between;align-items:center;}    
-body.dark .topbar{background:#0f0f12;}    
-.brand{display:flex;gap:10px;align-items:center;font-weight:700;}    
-.brand img{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);}    
-.wrap{padding:14px;max-width:900px;margin:auto;display:grid;gap:14px;}    
-.card{background:var(--card-light);border:1px solid var(--line);border-radius:20px;padding:14px;transition:.35s;}    
-body.dark .card{background:var(--card-dark);}    
-.value{font-size:28px;font-weight:900;color:var(--binance);transition:.25s;}    
-.profit{font-size:22px;font-weight:900;margin-top:10px;transition:.35s;}    
-.green{color:var(--success);}    
-.red{color:var(--danger);}    
-.paused{color:var(--paused);}    
-.btn{width:100%;padding:12px;border-radius:14px;border:none;font-weight:900;background:var(--binance);margin-top:10px;cursor:pointer;color:black;}    
-.btn.hold{background:var(--hold);color:#fff;}    
-.btn.cancel{background:var(--cancel);color:#fff;}    
-select,input{padding:8px;border-radius:10px;background:#fff;color:#111;border:1px solid var(--line);}    
-body.dark select,body.dark input{background:#0f0f12;color:white;}    
-.progress-bar{height:10px;background:#222;border-radius:10px;overflow:hidden;margin-top:10px;}    
-.progress-fill{height:100%;width:0%;background:var(--binance);transition:width 1s linear;}    
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:10px;}    
-body.dark .bottom-nav{background:#0f0f12;}    
-.nav-item{display:flex;flex-direction:column;align-items:center;font-size:11px;color:var(--muted);text-decoration:none;}    
-.nav-item.active{color:var(--binance);}    
-.theme{position:absolute;top:12px;right:12px;cursor:pointer;font-size:14px;padding:6px 10px;border-radius:8px;background:#eee;color:#111;transition:.35s;}    
-body.dark .theme{background:#222;color:white;}  /* Signal + Animated Chart */  
-.signal{  
-margin:14px 0;  
-background:#101722;  
-border:1px solid rgba(255,255,255,.06);  
-border-radius:16px;  
-padding:14px;  
-box-shadow:0 10px 40px rgba(0,0,0,.35);  
-}  
-.signal-top{  
-display:flex;  
-justify-content:space-between;  
-align-items:flex-start;  
-gap:10px;  
-}  
-.signal h2{  
-font-size:15px;  
-margin-bottom:4px;  
-}  
-.signal small{  
-color:#9aa4b2;  
-font-size:12px;  
-}  
-.price{  
-text-align:right;  
-}  
-.price .p{  
-font-size:18px;  
-font-weight:800;  
-}  
-.price .chg{  
-font-size:12px;  
-font-weight:700;  
-margin-top:3px;  
-}  
-.chg.up{color:#00c087;}  
-.chg.down{color:#f6465d;}  .chartWrap{
-margin:14px 0;
-background:#0f141b;
-border:1px solid rgba(255,255,255,.06);
-border-radius:18px;
-overflow:hidden;
-box-shadow:0 10px 40px rgba(0,0,0,.35);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trade Room</title>
+
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+<style>
+:root{
+--bg-light:#f4f6f9; --bg-dark:#0b0b0d;
+--card-light:#fff; --card-dark:#111114;
+--text-light:#111; --text-dark:#f2f2f2;
+--muted:#9b9b9b; --line:#1f1f25;
+--binance:#f0b90b; --danger:#ff3b3b; --success:#00c389;
+--hold:#00bfff; --cancel:#ff4500; --paused:#ffcc00;
 }
-canvas{
-width:100%;
-height:320px;
-display:block;
-}
+
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,Segoe UI,Roboto;}
+
+body{background:var(--bg-light);color:var(--text-light);padding-bottom:90px;transition:.35s;}
+body.dark{background:var(--bg-dark);color:var(--text-dark);}
+
+.topbar{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);
+padding:14px;display:flex;justify-content:space-between;align-items:center;}
+body.dark .topbar{background:#0f0f12;}
+
+.brand{display:flex;gap:10px;align-items:center;font-weight:700;}
+.brand img{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);}
+
+.wrap{padding:14px;max-width:900px;margin:auto;display:grid;gap:14px;}
+
+.card{background:var(--card-light);border:1px solid var(--line);
+border-radius:20px;padding:14px;}
+body.dark .card{background:var(--card-dark);}
+
+.btn{width:100%;padding:12px;border-radius:14px;border:none;
+font-weight:900;background:var(--binance);margin-top:10px;cursor:pointer;}
+
+.btn.hold{background:var(--hold);color:#fff;}
+.btn.cancel{background:var(--cancel);color:#fff;}
+
+.progress-bar{height:10px;background:#222;border-radius:10px;overflow:hidden;margin-top:10px;}
+.progress-fill{height:100%;width:0%;background:var(--binance);transition:width 1s linear;}
+
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);
+display:flex;justify-content:space-around;padding:10px;}
+body.dark .bottom-nav{background:#0f0f12;}
+
+.theme{position:absolute;top:12px;right:12px;cursor:pointer;
+padding:6px 10px;border-radius:8px;background:#eee;}
+body.dark .theme{background:#222;color:white;}
 </style>
+</head>
 
-</head>    
-<body>    
-<script>if(!localStorage.getItem("loggedin")) location.href="index.html";</script>  <div class="theme" onclick="toggleTheme()">☀︎ / 🌙</div>  <header class="topbar">    
-  <div class="brand">    
-    <img src="logo.png" alt="Logo">    
-    <div><div>Trade Room</div><span id="livePair">BTC/USDT</span></div>    
-  </div>    
-  <div style="font-weight:bold;color:#f0b90b;">$<span id="totalBalance">500</span></div>    
-</header>  <main class="wrap">  <!-- Signal Card -->  <section class="card signal">    
-  <div class="signal-top">    
-    <div>    
-      <h2 id="signalText">Signal: BUY</h2>    
-      <small id="signalDesc">Trend confirmed • Strong momentum</small>    
-    </div>    
-    <div class="price">    
-      <div class="p" id="signalPrice">50000</div>    
-      <div class="chg up" id="signalChange">+0.00%</div>    
-    </div>    
-  </div>    
-</section>  <!-- Animated Chart -->  <section class="card chartWrap">    
-  <canvas id="chart"></canvas>    
-</section>  <section class="card">    
-  <h3>Select Pair</h3>    
-  <select id="pairSelect" onchange="changePair(this.value)">    
-    <option value="BINANCE:BTCUSDT">BTC/USDT</option>    
-    <option value="BINANCE:ETHUSDT">ETH/USDT</option>    
-    <option value="BINANCE:SOLUSDT">SOL/USDT</option>    
-    <option value="BINANCE:BNBUSDT">BNB/USDT</option>    
-    <option value="BINANCE:ETHBTC">ETH/BTC</option>    
-    <option value="BINANCE:BTCETH">BTC/ETH</option>    
-    <option value="BINANCE:BNBBTC">BNB/BTC</option>    
-  </select>    
-</section>  <section class="card">    
-  <h3>AI Trade Signal</h3>    
-  <label>Trade Duration (7–180 days)</label>    
-  <input type="number" id="duration" min="7" max="180" value="30">    
-  <p>Entry: <span id="entry">--</span></p>    
-  <p>Stop Loss: <span id="sl">--</span></p>    
-  <p>Take Profit: <span id="tp">--</span></p>    
-  <p>Signal Confidence: <span id="confidence">--</span></p>    
-  <button class="btn" id="startBtn" onclick="startTrade()">Start Trade</button>    
-  <button class="btn hold" id="holdBtn" onclick="toggleHold()">Hold Trade</button>    
-  <button class="btn cancel" onclick="cancelTrade()">Cancel Trade</button>    
-  <div class="profit" id="profit">+$0</div>    
-  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>    
-  <div id="countdown">Withdrawal unlocks in: --</div>    
-</section>  <!-- Withdraw button -->  <section class="card">    
-  <button class="btn" onclick="window.location.href='withdraw.html'">Withdraw Funds</button>    
-</section>  </main>  <nav class="bottom-nav">    
-  <a class="nav-item" href="home.html"><span class="material-icons">home</span>Home</a>    
-  <a class="nav-item active" href="trade.html"><span class="material-icons">swap_horiz</span>Trade</a>    
-  <a class="nav-item" href="index.html" onclick="logout()"><span class="material-icons">logout</span>Logout</a>    
-</nav>  <script>    
-// ---------------- Persistent Trade Simulator ----------------    
-const START_BALANCE = 500;    
-const PROFIT_INTERVAL_MS = 5*60*1000;    
-const PROFIT_PER_INTERVAL = 130;    
-const PROFIT_TICK_MS = 1000;    let loopCountdown=null, loopProgress=null, loopProfit=null;
+<body>
 
-function getNum(k,d=0){const v=localStorage.getItem(k);return v===null?d:Number(v);}
+<script>
+if(!localStorage.getItem("loggedin")) location.href="index.html";
+</script>
+
+<div class="theme" onclick="toggleTheme()">☀ / 🌙</div>
+
+<header class="topbar">
+<div class="brand">
+<img src="logo.png">
+<div>Trade Room<br><small id="livePair">BTC/USDT</small></div>
+</div>
+<div style="font-weight:bold;color:#f0b90b;">$<span id="totalBalance">500</span></div>
+</header>
+
+<main class="wrap">
+
+<section class="card">
+<h3>Select Pair</h3>
+<select onchange="changePair(this)">
+<option>BTC/USDT</option>
+<option>ETH/USDT</option>
+<option>SOL/USDT</option>
+<option>BNB/USDT</option>
+</select>
+</section>
+
+<section class="card">
+<h3>AI Trade</h3>
+
+<label>Duration (7-180 days)</label>
+<input type="number" id="duration" min="7" max="180" value="30">
+
+<button class="btn" id="startBtn" onclick="startTrade()">Start Trade</button>
+<button class="btn hold" id="holdBtn" onclick="toggleHold()">Hold Trade</button>
+<button class="btn cancel" onclick="cancelTrade()">Cancel Trade</button>
+
+<div style="font-size:22px;font-weight:900;margin-top:10px" id="profit">+$0</div>
+
+<div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
+
+<div id="countdown">Withdrawal unlocks in: --</div>
+
+</section>
+
+</main>
+
+<nav class="bottom-nav">
+<a href="home.html">Home</a>
+<a href="trade.html">Trade</a>
+<a href="index.html" onclick="logout()">Logout</a>
+</nav>
+
+<script>
+
+/* ---------- THEME ---------- */
+function toggleTheme(){
+document.body.classList.toggle("dark");
+localStorage.setItem("theme",document.body.classList.contains("dark")?"dark":"light");
+}
+if(localStorage.getItem("theme")==="dark") document.body.classList.add("dark");
+
+/* ---------- PAIR ---------- */
+function changePair(sel){
+document.getElementById("livePair").textContent=sel.value;
+}
+
+/* ---------- TRADE ENGINE ---------- */
+
+const START_BALANCE=500;
+const PROFIT_PER_SEC=0.6;
+
+let countdownLoop,profitLoop,progressLoop;
+
+function getNum(k,d=0){return Number(localStorage.getItem(k)??d);}
 function getBool(k){return localStorage.getItem(k)==="true";}
 function setBool(k,v){localStorage.setItem(k,v?"true":"false");}
 
-function setBalance(val){
-val=Math.max(START_BALANCE,val);
-localStorage.setItem("balance",String(val));
-document.getElementById("totalBalance").textContent="$"+val.toFixed(2);
+function setBalance(v){
+localStorage.setItem("balance",v);
+document.getElementById("totalBalance").textContent=Number(v).toFixed(2);
 }
 
-function setProfitUI(additionalProfit){
-const el=document.getElementById("profit");
-el.textContent=(additionalProfit>=0?"+":"-")+"$"+Math.abs(additionalProfit).toFixed(2);
-el.classList.remove("green","red","paused");
-if(getBool("holdActive")) el.classList.add("paused");
-else el.classList.add(additionalProfit>=0?"green":"red");
+function startTrade(){
+
+const days=Math.max(7,Math.min(180,Number(duration.value)));
+const now=Date.now();
+const end=now+days*24*60*60*1000;   // ✅ FIXED
+
+setBool("tradeActive",true);
+setBool("holdActive",false);
+
+localStorage.tradeStart=now;
+localStorage.tradeEnd=end;
+localStorage.profit=0;
+localStorage.last=now;
+
+setBalance(getNum("balance",START_BALANCE));
+
+startLoops();
+updateButtons();
 }
 
-function catchUpProfits(){
-const tradeActive=getBool("tradeActive"); if(!tradeActive||getBool("holdActive")) return;
-const start=getNum("tradeStartTime",0),end=getNum("tradeEndTime",0);
-if(!start||!end) return;
-const now=Date.now(),capTime=Math.min(now,end);
-const profitPerMs=PROFIT_PER_INTERVAL/PROFIT_INTERVAL_MS;
-let lastTick=getNum("lastTickTime",0); if(!lastTick){lastTick=now; localStorage.setItem("lastTickTime",String(lastTick)); return;}
-if(lastTick>=end) return;
-const from=Math.max(lastTick,start),to=capTime; if(to<=from) return;
-const deltaMs=to-from;
-const baseAdd=deltaMs*profitPerMs;
-localStorage.setItem("lastTickTime",String(to));
-let additionalProfit=getNum("additionalProfit",0); additionalProfit+=baseAdd; localStorage.setItem("additionalProfit",String(additionalProfit));
-let bal=getNum("balance",START_BALANCE);
-bal=Math.max(START_BALANCE,bal+baseAdd);
-setBalance(bal); setProfitUI(additionalProfit);
+function toggleHold(){
+if(!getBool("tradeActive"))return;
+setBool("holdActive",!getBool("holdActive"));
+localStorage.last=Date.now();
+updateButtons();
+}
+
+function cancelTrade(){
+setBool("tradeActive",false);
+setBool("holdActive",false);
+localStorage.removeItem("tradeStart");
+localStorage.removeItem("tradeEnd");
+localStorage.removeItem("profit");
+stopLoops();
+setBalance(START_BALANCE);
+profit.innerText="+$0";
+progressFill.style.width="0%";
+countdown.innerText="Withdrawal unlocks in: --";
+updateButtons();
 }
 
 function startLoops(){
 stopLoops();
-loopCountdown=setInterval(()=>{updateCountdown();updateButtons();},1000);
-loopProgress=setInterval(()=>{updateProgress();},1000);
-loopProfit=setInterval(()=>{catchUpProfits();},PROFIT_TICK_MS);
+
+profitLoop=setInterval(()=>{
+
+if(!getBool("tradeActive")||getBool("holdActive")) return;
+
+let last=getNum("last",Date.now());
+let now=Date.now();
+let diff=(now-last)/1000;
+
+let p=getNum("profit",0)+diff*PROFIT_PER_SEC;
+localStorage.profit=p;
+localStorage.last=now;
+
+profit.innerText="+$"+p.toFixed(2);
+setBalance(getNum("balance",START_BALANCE)+p);
+
+},1000);
+
+countdownLoop=setInterval(updateCountdown,1000);
+progressLoop=setInterval(updateProgress,1000);
 }
 
-function stopLoops(){if(loopCountdown) clearInterval(loopCountdown); if(loopProgress) clearInterval(loopProgress); if(loopProfit) clearInterval(loopProfit);
-loopCountdown=null; loopProgress=null; loopProfit=null;}
-
-function startTrade(){
-const durationDays=Math.max(7,Math.min(180,Number(document.getElementById("duration").value||7)));
-const now=Date.now(),end=now+durationDays2460601000;
-setBool("tradeActive",true); setBool("holdActive",false);
-localStorage.setItem("tradeStartTime",String(now)); localStorage.setItem("tradeEndTime",String(end));
-localStorage.setItem("additionalProfit","0"); localStorage.setItem("lastTickTime",String(now));
-setBalance(getNum("balance",START_BALANCE)); setProfitUI(0);
-startLoops(); updateCountdown(); updateProgress(); updateButtons();
+function stopLoops(){
+clearInterval(profitLoop);
+clearInterval(countdownLoop);
+clearInterval(progressLoop);
 }
 
-function toggleHold(){if(!getBool("tradeActive")) return; const newHold=!getBool("holdActive"); setBool("holdActive",newHold); if(!newHold) localStorage.setItem("lastTickTime",String(Date.now())); setProfitUI(getNum("additionalProfit",0)); updateButtons();}
-function cancelTrade(){setBool("tradeActive",false); setBool("holdActive",false); localStorage.removeItem("tradeStartTime"); localStorage.removeItem("tradeEndTime"); localStorage.removeItem("additionalProfit"); localStorage.removeItem("lastTickTime"); setBalance(START_BALANCE); setProfitUI(0); stopLoops(); updateCountdown(); updateProgress(); updateButtons();}
-function updateCountdown(){const el=document.getElementById("countdown"); const end=getNum("tradeEndTime",0); const tradeActive=getBool("tradeActive"); if(!tradeActive){el.textContent="Withdrawal unlocks in: --"; return;} const remaining=Math.max(0,end-Date.now()); if(remaining<=0){el.textContent="Trade complete — Withdrawal unlocked ✅"; return;} const s=Math.floor(remaining/1000),d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60),sec=s%60; el.textContent="Withdrawal unlocks in: "+d+"d "+String(h).padStart(2,"0")+"h "+String(m).padStart(2,"0")+"m "+String(sec).padStart(2,"0")+"s";}
-function updateProgress(){const fill=document.getElementById("progressFill");if(!fill)return; const start=getNum("tradeStartTime",0),end=getNum("tradeEndTime",0); if(!getBool("tradeActive")||!start||!end){fill.style.width="0%";return;} const p=((Date.now()-start)/(end-start))*100; fill.style.width=Math.max(0,Math.min(100,p))+"%";}
-function updateButtons(){const startBtn=document.getElementById("startBtn");const holdBtn=document.getElementById("holdBtn");if(startBtn) startBtn.disabled=getBool("tradeActive"); if(holdBtn) holdBtn.disabled=!getBool("tradeActive"); if(holdBtn) holdBtn.textContent=getBool("holdActive")?"Continue Trade":"Hold Trade";}
-function logout(){localStorage.removeItem("loggedin"); window.location.href="index.html";}
-function toggleTheme(){document.body.classList.toggle("dark"); localStorage.setItem("theme",document.body.classList.contains("dark")?"dark":"light");}
+function updateCountdown(){
+if(!getBool("tradeActive")) return;
+let r=localStorage.tradeEnd-Date.now();
+if(r<=0){countdown.innerText="Trade complete ✅";stopLoops();return;}
+let d=Math.floor(r/86400000);
+let h=Math.floor(r%86400000/3600000);
+let m=Math.floor(r%3600000/60000);
+countdown.innerText=`Withdrawal unlocks in: ${d}d ${h}h ${m}m`;
+}
 
-(function(){if(localStorage.getItem("theme")==="dark") document.body.classList.add("dark");})();
-(function initPersistentTrade(){if(localStorage.getItem("balance")===null)setBalance(START_BALANCE);else setBalance(getNum("balance",START_BALANCE)); setProfitUI(getNum("additionalProfit",0)); if(getBool("tradeActive")){catchUpProfits();startLoops();}else stopLoops(); updateCountdown();updateProgress();updateButtons();})();
-</script>  </body>
+function updateProgress(){
+if(!getBool("tradeActive")) return;
+let s=localStorage.tradeStart;
+let e=localStorage.tradeEnd;
+let p=((Date.now()-s)/(e-s))*100;
+progressFill.style.width=Math.min(100,p)+"%";
+}
 
-</html>    
+function updateButtons(){
+startBtn.disabled=getBool("tradeActive");
+holdBtn.disabled=!getBool("tradeActive");
+holdBtn.textContent=getBool("holdActive")?"Continue Trade":"Hold Trade";
+}
+
+function logout(){
+localStorage.removeItem("loggedin");
+}
+
+(function init(){
+setBalance(getNum("balance",START_BALANCE));
+profit.innerText="+$"+getNum("profit",0).toFixed(2);
+if(getBool("tradeActive")) startLoops();
+updateButtons();
+})();
+
+</script>
+
+</body>
+</html>
