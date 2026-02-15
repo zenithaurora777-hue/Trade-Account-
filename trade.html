@@ -2,77 +2,220 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trade</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Trade Room</title>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,Segoe UI,Roboto;}
-body{background:#f4f6f9;color:#111;transition:.35s;}
-body.dark{background:#0b0f14;color:white;}
-header{display:flex;justify-content:space-between;align-items:center;padding:18px 24px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.05);}
-body.dark header{background:#111;}
-header h1{font-size:20px;}
-.theme{cursor:pointer;font-size:16px;}
-.trade{padding:24px;display:flex;flex-direction:column;gap:18px;}
-.card{background:#fff;padding:16px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.08);}
-body.dark .card{background:#111}
-.card h2{margin-bottom:12px;}
-.card input, .card button{padding:12px 16px;border-radius:10px;border:1px solid #ccc;font-size:16px;width:100%;margin-bottom:8px;outline:none;transition:.25s;}
-body.dark .card input{background:#0c1117;color:white;border:1px solid #2a3441;}
-.card button{border:none;background:#f5c518;color:#111;font-weight:700;cursor:pointer;}
-.card button:hover{opacity:.85;}
+body{background:#0b0f14;color:white;transition:.35s;}
+body.light{background:#f4f6f9;color:#111;}
+header{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;background:#11161d;}
+body.light header{background:#fff;color:#111;}
+header h1{font-size:20px;font-weight:600;}
+nav a{color:#f5c518;text-decoration:none;font-weight:600;margin-left:16px;}
+body.light nav a{color:#f5c518;}
+section{padding:20px;}
+.card{background:#11161d;border-radius:16px;padding:20px;margin-bottom:20px;transition:.35s;}
+body.light .card{background:#fff;color:#111;}
+.card h2{margin-bottom:12px;font-size:16px;color:#f5c518;}
+.coin{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#222831;border-radius:12px;margin-bottom:12px;}
+body.light .coin{background:#eee;color:#111;}
+.coin p{font-weight:600;}
+button{padding:10px 16px;background:#f5c518;border:none;border-radius:10px;color:#111;cursor:pointer;font-weight:600;}
+.theme{position:fixed;top:12px;right:12px;cursor:pointer;font-size:14px;padding:6px 10px;border-radius:8px;background:#f5c518;color:#111;transition:.35s;}
+body.light .theme{background:#111;color:white;}
+
+/* Signal & Profit Styles */
+.signal{margin:20px 0;padding:16px;border-radius:16px;background:#1b1f2a;box-shadow:0 6px 20px rgba(0,0,0,0.3);}
+.signal h3{font-size:14px;color:#f5c518;margin-bottom:4px;}
+.signal .price{font-size:18px;font-weight:800;text-align:right;}
+.signal .chg{font-size:12px;margin-top:2px;font-weight:700;}
+.signal .chg.up{color:#00c389;}
+.signal .chg.down{color:#ff3b3b;}
+#profit{margin-top:10px;font-size:18px;font-weight:900;transition:.25s;}
+#totalBalanceDisplay{font-size:20px;font-weight:900;margin-top:10px;}
+canvas.candlestickChart{width:100%;height:250px;display:block;margin-top:10px;}
 </style>
 </head>
 <body>
-<header>
-<h1>Trade</h1>
+
 <div class="theme" onclick="toggleTheme()">☀︎ / 🌙</div>
+
+<header>
+<h1>Trade Room</h1>
+<nav>
+<a href="home.html">Home</a>
+<a href="withdrawal.html">Withdraw</a>
+</nav>
 </header>
 
-<div class="trade">
+<section>
 <div class="card">
-<h2>Buy Crypto</h2>
-<input type="number" id="buyAmount" placeholder="Amount USD">
-<button onclick="buy()">Buy</button>
+<h2>Market Coins</h2>
+<div class="coin"><p>BTC/USDT</p><button>Buy</button></div>
+<div class="coin"><p>ETH/USDT</p><button>Buy</button></div>
+<div class="coin"><p>BNB/USDT</p><button>Buy</button></div>
+</div>
+
+<div class="card signal">
+<h3>AI Trade Signal</h3>
+<div id="signalText">Signal: BUY</div>
+<div class="price" id="signalPrice">50000</div>
+<div class="chg up" id="signalChange">+0.00%</div>
+<div id="profit">+$0</div>
+<canvas class="candlestickChart" id="candlestickChart"></canvas>
+<div id="totalBalanceDisplay">Balance: $500</div>
 </div>
 
 <div class="card">
-<h2>Sell Crypto</h2>
-<input type="number" id="sellAmount" placeholder="Amount USD">
-<button onclick="sell()">Sell</button>
+<h2>Trade Graph</h2>
+<canvas id="tradeChart"></canvas>
 </div>
-</div>
+</section>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-function toggleTheme(){
-  document.body.classList.toggle("dark");
-  localStorage.setItem("theme",document.body.classList.contains("dark")?"dark":"light");
-}
-if(localStorage.getItem("theme")==="dark")document.body.classList.add("dark");
+function toggleTheme(){document.body.classList.toggle("light");}
 
-// Balance
-let balance=parseFloat(localStorage.getItem("balance")||"1000");
+// -------------------- Line Chart (tradeChart) --------------------
+const ctx=document.getElementById('tradeChart').getContext('2d');
+const tradeChart=new Chart(ctx,{
+type:'line',
+data:{
+labels:Array.from({length:60},(_,i)=>i),
+datasets:[{label:'BTC/USDT',data:Array.from({length:60},()=>Math.random()*100),borderColor:'#f5c518',backgroundColor:'rgba(245,197,24,0.2)',tension:0.4}]
+},
+options:{animation:{duration:2000},responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
+});
+setInterval(()=>{
+tradeChart.data.datasets[0].data.push(Math.random()*100);
+tradeChart.data.datasets[0].data.shift();
+tradeChart.update();
+},1500);
 
-function updateBalance(){
-  localStorage.setItem("balance",balance.toFixed(2));
-  alert("Updated Balance: $"+balance.toFixed(2));
+// -------------------- Candlestick Signal Chart --------------------
+const canvas=document.getElementById("candlestickChart");
+const ctxC=canvas.getContext("2d");
+const candles=[];
+const maxCandles=60;
+let lastClose=50000;
+function rand(min,max){return Math.random()*(max-min)+min;}
+for(let i=0;i<maxCandles;i++){
+  const open=lastClose;
+  const close=open+rand(-500,500);
+  const high=Math.max(open,close)+rand(50,200);
+  const low=Math.min(open,close)-rand(50,200);
+  candles.push({open,high,low,close});
+  lastClose=close;
 }
+let scrollOffset=0;
+const scrollSpeed=0.18;
 
-function buy(){
-  let amt=parseFloat(document.getElementById("buyAmount").value);
-  if(!amt||amt<=0)return alert("Enter a valid amount");
-  balance+=amt;
-  updateBalance();
-  document.getElementById("buyAmount").value="";
+function drawGrid(){
+  ctxC.fillStyle="#1b1f2a";
+  ctxC.fillRect(0,0,canvas.clientWidth,canvas.clientHeight);
+  ctxC.strokeStyle="rgba(255,255,255,0.05)";
+  ctxC.lineWidth=1;
+  for(let i=1;i<8;i++){
+    let x=(canvas.clientWidth/8)*i;
+    ctxC.beginPath();
+    ctxC.moveTo(x,0);
+    ctxC.lineTo(x,canvas.clientHeight);
+    ctxC.stroke();
+  }
 }
+function getPriceRange(){let min=Infinity,max=-Infinity;for(const c of candles){if(c.low<min)min=c.low;if(c.high>max)max=c.high;} const pad=(max-min)*0.08;return {min:min-pad,max:max+pad};}
+function priceToY(price,range){return canvas.clientHeight-((price-range.min)/(range.max-range.min))*canvas.clientHeight;}
+function drawCandles(){
+  const range=getPriceRange();
+  const candleSpacing=canvas.clientWidth/maxCandles;
+  const candleWidth=candleSpacing*0.55;
+  for(let i=0;i<candles.length;i++){
+    const c=candles[i];
+    const xCenter=i*candleSpacing+candleSpacing/2-scrollOffset;
+    if(xCenter<-50||xCenter>canvas.clientWidth+50)continue;
+    const openY=priceToY(c.open,range);
+    const closeY=priceToY(c.close,range);
+    const highY=priceToY(c.high,range);
+    const lowY=priceToY(c.low,range);
+    const isBull=c.close>=c.open;
+    const bodyTop=Math.min(openY,closeY);
+    const bodyBottom=Math.max(openY,closeY);
+    const bodyHeight=Math.max(2,bodyBottom-bodyTop);
+    ctxC.strokeStyle="rgba(255,255,255,0.18)";
+    ctxC.lineWidth=1.3;
+    ctxC.beginPath();
+    ctxC.moveTo(xCenter,highY);
+    ctxC.lineTo(xCenter,lowY);
+    ctxC.stroke();
+    ctxC.fillStyle=isBull?"#00c389":"#ff3b3b";
+    ctxC.fillRect(xCenter-candleWidth/2,bodyTop,candleWidth,bodyHeight);
+  }
+}
+function addNewCandle(){
+  const last=candles[candles.length-1];
+  const open=last.close;
+  const drift=rand(-0.0012,0.0018);
+  const close=open+drift+rand(-0.003,0.003);
+  const high=Math.max(open,close)+rand(0.001,0.004);
+  const low=Math.min(open,close)-rand(0.001,0.004);
+  candles.push({open,high,low,close});
+  if(candles.length>maxCandles)candles.shift();
+  updateLivePrice(close);
+}
+function updateLivePrice(price){
+  const el=document.getElementById("signalPrice");
+  el.textContent=price.toFixed(2);
+  const first=candles[0].open;
+  const change=((price-first)/first)*100;
+  const chgEl=document.getElementById("signalChange");
+  chgEl.textContent=(change>=0?"+":"")+change.toFixed(2)+"%";
+  chgEl.className="chg "+(change>=0?"up":"down");
+}
+function animateCandles(){
+  drawGrid();
+  drawCandles();
+  scrollOffset+=scrollSpeed;
+  const candleSpacing=canvas.clientWidth/maxCandles;
+  if(scrollOffset>=candleSpacing){scrollOffset=0;addNewCandle();}
+  requestAnimationFrame(animateCandles);
+}
+animateCandles();
 
-function sell(){
-  let amt=parseFloat(document.getElementById("sellAmount").value);
-  if(!amt||amt<=0)return alert("Enter a valid amount");
-  if(amt>balance)return alert("Insufficient funds");
-  balance-=amt;
-  updateBalance();
-  document.getElementById("sellAmount").value="";
+// -------------------- Profit & Balance Simulator --------------------
+let totalBalance=500;
+let profit=0;
+const PROFIT_INTERVAL_MS=5*60*1000;
+const PROFIT_PER_INTERVAL=130;
+const PROFIT_TICK_MS=1000;
+let lastTickTime=Date.now();
+
+function setProfitUI(){
+  const el=document.getElementById("profit");
+  el.textContent=(profit>=0?"+":"-")+"$"+Math.abs(profit).toFixed(2);
+  el.style.color=profit>=0?"#00c389":"#ff3b3b";
 }
+function setBalanceUI(){
+  const el=document.getElementById("totalBalanceDisplay");
+  el.textContent="Balance: $"+totalBalance.toFixed(2);
+  el.style.color=totalBalance>=500?"#00c389":"#ff3b3b";
+}
+function catchUpProfit(){
+  const now=Date.now();
+  const deltaMs=now-lastTickTime;
+  if(deltaMs<PROFIT_TICK_MS) return;
+  lastTickTime=now;
+  const baseAdd=(deltaMs/PROFIT_INTERVAL_MS)*PROFIT_PER_INTERVAL;
+  const noise=(Math.random()-0.5)*0.35*(deltaMs/1000);
+  let add=baseAdd+noise;
+  if(add<baseAdd*0.35) add=baseAdd*0.35;
+  profit+=add;
+  totalBalance=Math.max(500,totalBalance+add);
+  setProfitUI();
+  setBalanceUI();
+}
+setInterval(catchUpProfit,PROFIT_TICK_MS);
 </script>
+
 </body>
 </html>
