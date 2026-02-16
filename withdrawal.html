@@ -177,9 +177,27 @@ function clearWarnings() {
   document.getElementById("amountWarn").innerText = "";
 }
 
+// Check if withdrawal lock has passed
+function isTradeUnlocked() {
+  let cycleStart = Number(localStorage.getItem("cycleStart") || 0);
+  let lockDays = Number(localStorage.getItem("withdrawDays") || 7); // fallback 7 days
+  if(!cycleStart) return true; // no trade start time, allow
+  let now = Date.now();
+  let elapsedDays = (now - cycleStart)/(1000*60*60*24);
+  if(elapsedDays < lockDays){
+    alert(`Trade is locked for ${lockDays} days. Returning to Trade Room.`);
+    setTimeout(()=>{ window.location.href="trade.html"; }, 1200);
+    return false;
+  }
+  return true;
+}
+
 // Withdrawal logic
 function makeWithdrawal() {
   clearWarnings();
+
+  if(!isTradeUnlocked()) return; // stop if locked
+
   let wallet = document.getElementById("wallet").value.trim();
   let coin = document.getElementById("coin").value;
   let network = document.getElementById("network").value;
@@ -231,6 +249,10 @@ function saveHistory(txt){
 window.onload = ()=>{
   updateNetwork();
   document.getElementById("amount").setAttribute("max", balance);
+
+  // Read currently selected withdrawal lock from trade.html
+  let lockDays = Number(localStorage.getItem("withdrawDays") || 7);
+  console.log("Withdrawal lock days:", lockDays);
 }
 
 function toggleTheme(){
