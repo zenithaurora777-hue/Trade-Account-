@@ -113,15 +113,11 @@ body.dark .theme {
   </select>
 
   <label>Network</label>
-  <select id="network">
-    <option value="TRC20">TRC20</option>
-    <option value="ERC20">ERC20</option>
-    <option value="BEP20">BEP20</option>
-  </select>
+  <select id="network"></select>
   <div id="networkWarn" class="warning"></div>
 
   <label>Amount</label>
-  <input type="text" id="amount" readonly>
+  <input type="number" id="amount" placeholder="Enter amount to withdraw" min="0">
   <div id="amountWarn" class="warning"></div>
 
   <button onclick="makeWithdrawal()">Withdraw</button>
@@ -130,9 +126,9 @@ body.dark .theme {
 </div>
 
 <script>
-// Get current balance
-let balance = Number(localStorage.getItem("bal") || 0);
-document.getElementById("amount").value = "$" + balance;
+// Get current balance from trade.html
+let balance = Number(localStorage.getItem("withdrawableBalance") || 0);
+document.getElementById("amount").value = balance;
 
 // Block if balance is zero
 if(balance <= 0) {
@@ -187,7 +183,7 @@ function makeWithdrawal() {
   let wallet = document.getElementById("wallet").value.trim();
   let coin = document.getElementById("coin").value;
   let network = document.getElementById("network").value;
-  let amt = balance;
+  let amt = Number(document.getElementById("amount").value);
 
   // Wallet validation
   if(!walletRegex[coin].test(wallet)) {
@@ -202,8 +198,8 @@ function makeWithdrawal() {
   }
 
   // Amount validation
-  if(amt <= 0) {
-    showWarning("amountWarn", "Insufficient balance");
+  if(amt <= 0 || amt > balance) {
+    showWarning("amountWarn", "Amount must be between 0 and your balance");
     return;
   }
 
@@ -215,8 +211,11 @@ function makeWithdrawal() {
     document.getElementById("loader").style.display = "none";
     document.getElementById("successMsg").innerText = "Withdrawal Successful!";
     saveHistory(`Withdrawn ${amt} ${coin} to ${wallet} via ${network}`);
-    localStorage.setItem("bal", 0);
-    document.getElementById("amount").value = "$0";
+    
+    balance -= amt;
+    localStorage.setItem("withdrawableBalance", balance);
+    document.getElementById("amount").value = balance;
+
     setTimeout(()=>{ window.location.href = "trade.html"; }, 1500);
   }, 2000);
 }
@@ -231,6 +230,7 @@ function saveHistory(txt){
 // Init
 window.onload = ()=>{
   updateNetwork();
+  document.getElementById("amount").setAttribute("max", balance);
 }
 
 function toggleTheme(){
