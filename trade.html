@@ -124,12 +124,12 @@ $<span id="totalBalance">500.00</span>
 <script>
 
 /* ============================
-   UPDATED TRADE ENGINE ONLY
+   TRADE ENGINE WITH LAGGED BALANCE
 ============================ */
 
 const START=500;
 const TARGET_GAIN=130;
-const DURATION=5*60*1000;
+const DURATION=5*60*1000; // 5 minutes per cycle
 
 let tradeActive=localStorage.tradeActive==="true";
 let holdActive=localStorage.holdActive==="true";
@@ -148,6 +148,13 @@ localStorage.cycleStart=cycleStart;
 localStorage.cyclesCompleted=cyclesCompleted;
 }
 
+function blink(el,type){
+el.classList.remove("up","down");
+void el.offsetWidth;
+el.classList.add(type);
+setTimeout(()=>el.classList.remove("up","down"),500);
+}
+
 function setBalance(v){
 balance=v;
 totalBalance.textContent=balance.toFixed(2);
@@ -155,14 +162,21 @@ liveBalance.textContent="Balance: $"+balance.toFixed(2);
 saveState();
 }
 
+// Profit updates instantly with blinking
 function runProfit(){
 if(!tradeActive||holdActive) return;
 let change=(Math.random()-0.5)*20;
 profitValue+=change;
 profit.textContent=(profitValue>=0?"+$":"-$")+Math.abs(profitValue).toFixed(2);
+blink(profit,change>=0?"up":"down");
 profitLoop=setTimeout(runProfit,2000+Math.random()*2000);
+
+// schedule balance update with lag (~3 sec)
+clearTimeout(balanceLagTimer);
+balanceLagTimer=setTimeout(runBalance,3000);
 }
 
+// Total balance reacts with ~3 seconds delay and cycles $130 every 5 mins
 function runBalance(){
 if(!tradeActive||holdActive) return;
 
@@ -180,10 +194,10 @@ let fluctuation=(Math.random()-0.5)*40;
 
 let tempBalance=guaranteedBase + (TARGET_GAIN*progress) + fluctuation;
 
-balance=tempBalance;
-setBalance(balance);
-
-balanceLagTimer=setTimeout(runBalance,3000);
+// Update balance visually
+setBalance(tempBalance);
+blink(liveBalance,(tempBalance>=balance)?"up":"down");
+blink(totalBalance,(tempBalance>=balance)?"up":"down");
 }
 
 function toggleTrade(){
@@ -195,7 +209,6 @@ cycleStart=Date.now();
 tradeBtn.className="btn cancel";
 tradeBtn.textContent="Cancel Trade";
 runProfit();
-runBalance();
 }else{
 tradeBtn.className="btn start";
 tradeBtn.textContent="Start Trade";
@@ -217,7 +230,6 @@ holdActive=!holdActive;
 holdBtn.textContent=holdActive?"Continue Trade":"Hold Trade";
 if(!holdActive){
 runProfit();
-runBalance();
 }
 saveState();
 }
@@ -232,7 +244,6 @@ tradeBtn.className="btn cancel";
 tradeBtn.textContent="Cancel Trade";
 if(!holdActive){
 runProfit();
-runBalance();
 }
 }
 if(holdActive) holdBtn.textContent="Continue Trade";
