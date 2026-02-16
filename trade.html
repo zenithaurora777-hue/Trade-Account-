@@ -4,9 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Trade Room</title>
-
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
 <style>
 :root{
 --bg-light:#f4f6f9; --bg-dark:#0b0b0d;
@@ -70,9 +68,7 @@ body.dark .theme{background:#222;color:white;}
 @keyframes flash{0%{opacity:.2}100%{opacity:1}}
 </style>
 </head>
-
 <body>
-
 <script>
 if(!localStorage.getItem("loggedin")) location.href="index.html";
 </script>
@@ -106,7 +102,6 @@ if(!localStorage.getItem("loggedin")) location.href="index.html";
 
 <section class="card">
 <h3>AI Trade</h3>
-
 <label>Duration (7-180 days)</label>
 <input type="number" id="duration" min="7" max="180" value="30">
 
@@ -115,11 +110,9 @@ if(!localStorage.getItem("loggedin")) location.href="index.html";
 <button class="btn cancelBtn" onclick="cancelTrade()">Cancel Trade</button>
 
 <div id="profit">+$0</div>
-
 <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
 <div id="countdown">Withdrawal unlocks in: --</div>
 <div id="liveBalance" class="balanceBox">Balance: $500.00</div>
-
 <button class="btn" onclick="location.href='withdraw.html'">Withdraw Funds</button>
 
 </section>
@@ -161,6 +154,11 @@ const RATE=.6;
 let profitValue = 0;
 let pLoop, cLoop, progLoop;
 
+// TARGET BALANCE FEATURE
+const TARGET_BALANCE = 730; 
+const DURATION_MS = 5 * 60 * 1000; // 5 minutes
+let balanceStartTime, balanceStartValue;
+
 /* ===== LOCALSTORAGE HELPERS ===== */
 function getNum(k,d=0){return Number(localStorage.getItem(k)??d);}
 function getBool(k){return localStorage.getItem(k)==="true";}
@@ -189,7 +187,7 @@ totalBalance.classList.add(cls);
 function randomProfitChange(){
 if(!getBool("tradeActive") || getBool("holdActive")) return;
 
-let change = (Math.random()-0.5)*10; // random change -5 to +5
+let change = (Math.random()-0.5)*10; // random -5 to +5
 profitValue = getNum("profit",0) + change;
 localStorage.profit = profitValue;
 localStorage.lastChange = Date.now();
@@ -197,9 +195,29 @@ localStorage.lastChange = Date.now();
 applyBlink(change);
 setBalance(getNum("balance",START)+profitValue);
 
-// next change in 3-5 seconds randomly
+// next change in 3-5 seconds
 let delay = 3000 + Math.random()*2000;
 setTimeout(randomProfitChange, delay);
+}
+
+/* ===== TARGET BALANCE GRADUAL INCREMENT ===== */
+function updateTargetBalance(){
+if(!getBool("tradeActive")) return;
+let now = Date.now();
+let elapsed = now - balanceStartTime;
+if(elapsed > DURATION_MS) elapsed = DURATION_MS;
+
+let targetIncrement = TARGET_BALANCE - balanceStartValue;
+let gradualBalance = balanceStartValue + (targetIncrement * elapsed / DURATION_MS);
+
+let currentBalance = gradualBalance + profitValue;
+setBalance(currentBalance);
+
+if(elapsed < DURATION_MS){
+    requestAnimationFrame(updateTargetBalance);
+} else {
+    setBalance(TARGET_BALANCE + profitValue);
+}
 }
 
 /* ===== START TRADE ===== */
@@ -217,6 +235,10 @@ localStorage.tradeEnd=end;
 localStorage.lastChange=now;
 localStorage.profit=getNum("profit",0);
 setBalance(getNum("balance",START));
+
+// initialize target balance timers
+balanceStartTime = Date.now();
+balanceStartValue = getNum("balance",START);
 
 startLoops();
 }
@@ -246,6 +268,7 @@ countdown.textContent = "Withdrawal unlocks in: --";
 function startLoops(){
 stopLoops();
 randomProfitChange();
+updateTargetBalance(); // gradual total balance adjustment
 cLoop=setInterval(updateCountdown,1000);
 progLoop=setInterval(updateProgress,1000);
 }
@@ -284,6 +307,5 @@ profit.textContent = (profitValue>=0?"+$":"-$")+Math.abs(profitValue).toFixed(2)
 if(getBool("tradeActive")) startLoops();
 })();
 </script>
-
 </body>
 </html>
