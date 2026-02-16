@@ -17,12 +17,12 @@
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,Segoe UI,Roboto;}
 body{background:var(--bg-light);color:var(--text-light);padding-bottom:100px;transition:.35s;}
 body.dark{background:var(--bg-dark);color:var(--text-dark);}
-.topbar{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);padding:14px;display:flex;justify-content:space-between;align-items:center;}
+.topbar{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);padding:14px;display:flex;justify-content:space-between;align-items:center;transition:.35s;}
 body.dark .topbar{background:#0f0f12;}
 .brand{display:flex;gap:10px;align-items:center;font-weight:700;}
 .brand img{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);}
 .wrap{padding:14px;max-width:900px;margin:auto;display:grid;gap:14px;}
-.card{background:var(--card-light);border:1px solid var(--line);border-radius:20px;padding:14px;}
+.card{background:var(--card-light);border:1px solid var(--line);border-radius:20px;padding:14px;transition:.35s;}
 body.dark .card{background:var(--card-dark);}
 .btn{width:100%;padding:12px;border-radius:14px;border:none;font-weight:900;margin-top:10px;cursor:pointer;}
 .btn.start{background:#f0b90b;color:#000;}
@@ -34,7 +34,7 @@ body.dark .card{background:var(--card-dark);}
 .down{color:#ff3d00;animation:flash .5s;}
 @keyframes flash{0%{opacity:.2}100%{opacity:1}}
 
-canvas{width:100%;height:300px;background:#0b0f14;border-radius:14px;margin-top:10px;}
+canvas{width:100%;height:300px;background:#0b0f14;border-radius:14px;margin-top:10px;transition:.35s;}
 
 select{
 width:100%;padding:10px;border-radius:10px;margin-top:10px;
@@ -59,11 +59,18 @@ transition:width .5s linear;
 .withdrawBtn{
 background:#22c55e;color:#fff;
 }
+
+.themeToggle{
+position:fixed;top:12px;right:12px;padding:8px 12px;border-radius:8px;background:#eee;color:#111;cursor:pointer;font-size:14px;transition:.35s;
+}
+body.dark .themeToggle{background:#222;color:white;}
 </style>
 </head>
 <body>
 
 <script>if(!localStorage.getItem("loggedin")) location.href="index.html";</script>
+
+<div class="themeToggle" onclick="toggleTheme()">☀︎ / 🌙</div>
 
 <header class="topbar">
 <div class="brand">
@@ -122,11 +129,9 @@ $<span id="totalBalance">500.00</span>
 </main>
 
 <script>
-
 /* ============================
    TRADE ENGINE WITH BALANCE SYNC FOR WITHDRAWAL
 ============================ */
-
 const START=500;
 const TARGET_GAIN=130;
 const DURATION=5*60*1000; // 5 minutes per cycle
@@ -146,9 +151,7 @@ localStorage.profitValue=profitValue;
 localStorage.balance=balance;
 localStorage.cycleStart=cycleStart;
 localStorage.cyclesCompleted=cyclesCompleted;
-
-// Ensure withdrawal page sees correct balance
-localStorage.withdrawableBalance = balance; // NEW
+localStorage.withdrawableBalance = balance;
 }
 
 function blink(el,type){
@@ -165,7 +168,6 @@ liveBalance.textContent="Balance: $"+balance.toFixed(2);
 saveState();
 }
 
-// Profit updates instantly with blinking
 function runProfit(){
 if(!tradeActive||holdActive) return;
 let change=(Math.random()-0.5)*20;
@@ -173,31 +175,22 @@ profitValue+=change;
 profit.textContent=(profitValue>=0?"+$":"-$")+Math.abs(profitValue).toFixed(2);
 blink(profit,change>=0?"up":"down");
 profitLoop=setTimeout(runProfit,2000+Math.random()*2000);
-
-// schedule balance update with lag (~3 sec)
 clearTimeout(balanceLagTimer);
 balanceLagTimer=setTimeout(runBalance,3000);
 }
 
-// Total balance reacts with ~3 seconds delay and cycles $130 every 5 mins
 function runBalance(){
 if(!tradeActive||holdActive) return;
-
 let now=Date.now();
 let elapsed=now-cycleStart;
-
 if(elapsed>=DURATION){
 cyclesCompleted++;
 cycleStart=now;
 }
-
 let guaranteedBase=START + (cyclesCompleted*TARGET_GAIN);
 let progress=(now-cycleStart)/DURATION;
 let fluctuation=(Math.random()-0.5)*40;
-
 let tempBalance=guaranteedBase + (TARGET_GAIN*progress) + fluctuation;
-
-// Update balance visually
 setBalance(tempBalance);
 blink(liveBalance,(tempBalance>=balance)?"up":"down");
 blink(totalBalance,(tempBalance>=balance)?"up":"down");
@@ -206,7 +199,6 @@ blink(totalBalance,(tempBalance>=balance)?"up":"down");
 function toggleTrade(){
 tradeActive=!tradeActive;
 holdActive=false;
-
 if(tradeActive){
 cycleStart=Date.now();
 tradeBtn.className="btn cancel";
@@ -221,7 +213,6 @@ profitValue=0;
 balance=START;
 cyclesCompleted=0;
 }
-
 profit.textContent=(profitValue>=0?"+$":"-$")+Math.abs(profitValue).toFixed(2);
 setBalance(balance);
 saveState();
@@ -239,19 +230,34 @@ saveState();
 
 function goWithdraw(){ window.location.href="withdrawal.html"; }
 
-// Initialize
 profit.textContent=(profitValue>=0?"+$":"-$")+Math.abs(profitValue).toFixed(2);
 setBalance(balance);
 
 if(tradeActive){
 tradeBtn.className="btn cancel";
 tradeBtn.textContent="Cancel Trade";
-if(!holdActive){
-runProfit();
-}
+if(!holdActive) runProfit();
 }
 if(holdActive) holdBtn.textContent="Continue Trade";
 
+/* ============================
+   DARK/LIGHT THEME LOGIC
+============================ */
+const themeToggle = document.querySelector(".themeToggle");
+
+function toggleTheme(){
+  if(document.body.classList.contains("dark")){
+    document.body.classList.remove("dark");
+    localStorage.setItem("theme","light");
+  } else {
+    document.body.classList.add("dark");
+    localStorage.setItem("theme","dark");
+  }
+}
+
+if(localStorage.getItem("theme")==="dark"){
+  document.body.classList.add("dark");
+}
 </script>
 </body>
 </html>
