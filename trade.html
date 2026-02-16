@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Trade Room</title>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
 <style>
 :root{
 --bg-light:#f4f6f9; --bg-dark:#0b0b0d;
@@ -14,7 +15,7 @@
 --binance:#f0b90b; --danger:#ff3b3b; --success:#00c389;
 }
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,Segoe UI,Roboto;}
-body{background:var(--bg-light);color:var(--text-light);padding-bottom:90px;transition:.35s;}
+body{background:var(--bg-light);color:var(--text-light);padding-bottom:100px;transition:.35s;}
 body.dark{background:var(--bg-dark);color:var(--text-dark);}
 .topbar{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);padding:14px;display:flex;justify-content:space-between;align-items:center;}
 body.dark .topbar{background:#0f0f12;}
@@ -32,6 +33,33 @@ body.dark .card{background:var(--card-dark);}
 .up{color:#00c853;animation:flash .5s;}
 .down{color:#ff3d00;animation:flash .5s;}
 @keyframes flash{0%{opacity:.2}100%{opacity:1}}
+
+canvas{width:100%;height:300px;background:#0b0f14;border-radius:14px;margin-top:10px;}
+
+select{
+width:100%;padding:10px;border-radius:10px;margin-top:10px;
+border:1px solid var(--line);
+}
+
+.progressWrap{
+margin-top:10px;
+background:#1f2937;
+border-radius:10px;
+height:12px;
+overflow:hidden;
+}
+
+.progressBar{
+height:100%;
+width:0%;
+background:#00c389;
+transition:width .5s linear;
+}
+
+.withdrawBtn{
+background:#22c55e;color:#fff;
+}
+
 </style>
 </head>
 <body>
@@ -43,10 +71,35 @@ body.dark .card{background:var(--card-dark);}
 <img src="logo.png">
 <div>Trade Room<br><small id="livePair">BTC/USDT</small></div>
 </div>
-<div style="font-weight:bold;color:#f0b90b;">$<span id="totalBalance">500.00</span></div>
+<div style="font-weight:bold;color:#f0b90b;">
+$<span id="totalBalance">500.00</span>
+<button class="btn withdrawBtn" onclick="goWithdraw()">Withdraw</button>
+</div>
 </header>
 
 <main class="wrap">
+
+<!-- CHART CARD -->
+<section class="card">
+<h3>Live Crypto Signal</h3>
+
+<select id="pairSelect" onchange="changePair()">
+<option>BTC/USDT</option>
+<option>ETH/USDT</option>
+<option>SOL/USDT</option>
+<option>BNB/USDT</option>
+<option>XRP/USDT</option>
+<option>ADA/USDT</option>
+<option>DOGE/USDT</option>
+<option>AVAX/USDT</option>
+<option>TRX/USDT</option>
+<option>DOT/USDT</option>
+</select>
+
+<canvas id="chart"></canvas>
+</section>
+
+<!-- TRADE CARD -->
 <section class="card">
 <h3>AI Trade</h3>
 
@@ -55,104 +108,198 @@ body.dark .card{background:var(--card-dark);}
 
 <div id="profit">+$0.00</div>
 <div id="liveBalance" class="balanceBox">Balance: $500.00</div>
+
+<h4 style="margin-top:15px;">Withdrawal Countdown</h4>
+<select id="daySelect" onchange="setCountdown()">
+<option value="7">7 Days</option>
+<option value="30">30 Days</option>
+<option value="60">60 Days</option>
+<option value="90">90 Days</option>
+<option value="120">120 Days</option>
+<option value="150">150 Days</option>
+<option value="180">180 Days</option>
+</select>
+
+<div id="countdownText" style="margin-top:8px;font-weight:bold;"></div>
+<div class="progressWrap">
+<div class="progressBar" id="progressBar"></div>
+</div>
+
 </section>
 </main>
 
 <script>
 
-/* CONSTANTS */
-const START = 500;
-const TARGET_GAIN = 130;
-const DURATION = 5 * 60 * 1000;
-const MAX_DROP = 0.2 * START;
+/* ============================
+   CHART ENGINE
+============================ */
+const canvas=document.getElementById("chart");
+const ctx=canvas.getContext("2d");
+canvas.width=window.innerWidth-40;
+canvas.height=300;
 
-/* STATE (persistent) */
-let tradeActive = localStorage.tradeActive === "true";
-let holdActive = localStorage.holdActive === "true";
-let profitValue = Number(localStorage.profitValue || 0);
-let balance = Number(localStorage.balance || START);
-let cycleStart = Number(localStorage.cycleStart || 0);
+let candles=[];
+let basePrice=40000;
 
-let profitLoop;
-let balanceLagTimer;
-
-/* SAVE STATE */
-function saveState(){
-localStorage.tradeActive = tradeActive;
-localStorage.holdActive = holdActive;
-localStorage.profitValue = profitValue;
-localStorage.balance = balance;
-localStorage.cycleStart = cycleStart;
+function generateCandle(prev){
+let open=prev;
+let close=open+(Math.random()-0.5)*300;
+let high=Math.max(open,close)+Math.random()*150;
+let low=Math.min(open,close)-Math.random()*150;
+return{open,close,high,low};
 }
 
-/* UI HELPERS */
+function initChart(){
+candles=[];
+let price=basePrice;
+for(let i=0;i<60;i++){
+let c=generateCandle(price);
+candles.push(c);
+price=c.close;
+}
+}
+function draw(){
+ctx.clearRect(0,0,canvas.width,canvas.height);
+let x=canvas.width-600;
+candles.forEach(c=>{
+let scale=.01;
+let openY=canvas.height-c.open*scale;
+let closeY=canvas.height-c.close*scale;
+let highY=canvas.height-c.high*scale;
+let lowY=canvas.height-c.low*scale;
+let color=c.close>c.open?"#00c389":"#ff3b3b";
+ctx.strokeStyle=color;
+ctx.fillStyle=color;
+ctx.beginPath();
+ctx.moveTo(x+4,highY);
+ctx.lineTo(x+4,lowY);
+ctx.stroke();
+ctx.fillRect(x,Math.min(openY,closeY),8,Math.abs(openY-closeY));
+x+=12;
+});
+}
+function animate(){
+if(Math.random()<.03){
+let last=candles[candles.length-1].close;
+candles.push(generateCandle(last));
+candles.shift();
+}
+draw();
+requestAnimationFrame(animate);
+}
+initChart(); animate();
+
+function changePair(){
+let pair=pairSelect.value;
+livePair.textContent=pair;
+localStorage.pair=pair;
+basePrice=3000+Math.random()*40000;
+initChart();
+}
+if(localStorage.pair){
+pairSelect.value=localStorage.pair;
+livePair.textContent=localStorage.pair;
+}
+
+/* ============================
+   WITHDRAWAL COUNTDOWN
+============================ */
+let withdrawStart=Number(localStorage.withdrawStart||0);
+let withdrawDays=Number(localStorage.withdrawDays||7);
+
+function setCountdown(){
+withdrawDays=Number(daySelect.value);
+withdrawStart=Date.now();
+localStorage.withdrawStart=withdrawStart;
+localStorage.withdrawDays=withdrawDays;
+}
+function updateCountdown(){
+if(!withdrawStart) return;
+let total=withdrawDays*24*60*60*1000;
+let elapsed=Date.now()-withdrawStart;
+let remaining=total-elapsed;
+if(remaining<0) remaining=0;
+
+let days=Math.floor(remaining/(1000*60*60*24));
+countdownText.textContent="Remaining: "+days+" days";
+
+let percent=(elapsed/total)*100;
+progressBar.style.width=percent+"%";
+}
+setInterval(updateCountdown,1000);
+if(localStorage.withdrawStart){
+withdrawStart=Number(localStorage.withdrawStart);
+withdrawDays=Number(localStorage.withdrawDays);
+daySelect.value=withdrawDays;
+}
+
+/* ============================
+   YOUR ORIGINAL TRADE ENGINE
+   (UNCHANGED)
+============================ */
+const START=500;
+const TARGET_GAIN=130;
+const DURATION=5*60*1000;
+const MAX_DROP=0.2*START;
+
+let tradeActive=localStorage.tradeActive==="true";
+let holdActive=localStorage.holdActive==="true";
+let profitValue=Number(localStorage.profitValue||0);
+let balance=Number(localStorage.balance||START);
+let cycleStart=Number(localStorage.cycleStart||0);
+let profitLoop,balanceLagTimer;
+
+function saveState(){
+localStorage.tradeActive=tradeActive;
+localStorage.holdActive=holdActive;
+localStorage.profitValue=profitValue;
+localStorage.balance=balance;
+localStorage.cycleStart=cycleStart;
+}
 function setBalance(v){
-balance = v < START ? START : v;
-totalBalance.textContent = balance.toFixed(2);
-liveBalance.textContent = "Balance: $" + balance.toFixed(2);
+balance=v<START?START:v;
+totalBalance.textContent=balance.toFixed(2);
+liveBalance.textContent="Balance: $"+balance.toFixed(2);
 saveState();
 }
-
 function blink(el,type){
 el.classList.remove("up","down");
 void el.offsetWidth;
 el.classList.add(type);
 setTimeout(()=>el.classList.remove("up","down"),500);
 }
-
-/* PROFIT ENGINE */
 function runProfit(){
-if(!tradeActive || holdActive) return;
-
+if(!tradeActive||holdActive) return;
 let change=(Math.random()-0.5)*20;
 profitValue+=change;
-
 profit.textContent=(profitValue>=0?"+$":"-$")+Math.abs(profitValue).toFixed(2);
-blink(profit, change>=0?"up":"down");
-
+blink(profit,change>=0?"up":"down");
 saveState();
-
 clearTimeout(balanceLagTimer);
 balanceLagTimer=setTimeout(runBalance,3000);
-
 profitLoop=setTimeout(runProfit,2000+Math.random()*2000);
 }
-
-/* BALANCE ENGINE */
 function runBalance(){
-if(!tradeActive || holdActive) return;
-
+if(!tradeActive||holdActive) return;
 let elapsed=Date.now()-cycleStart;
-if(elapsed>=DURATION){
-cycleStart=Date.now();
-balance=START;
-}
-
+if(elapsed>=DURATION){cycleStart=Date.now();balance=START;}
 let progress=elapsed/DURATION;
-let guaranteed=START + TARGET_GAIN*progress;
-
+let guaranteed=START+TARGET_GAIN*progress;
 let fluctuation=(Math.random()-0.5)*40;
 let tempBalance=guaranteed+fluctuation;
-
-if(tempBalance < guaranteed-MAX_DROP)
+if(tempBalance<guaranteed-MAX_DROP)
 tempBalance=guaranteed-MAX_DROP;
-
 let diff=tempBalance-balance;
 balance=tempBalance;
-
 setBalance(balance);
-
-blink(liveBalance, diff>=0?"up":"down");
-blink(totalBalance, diff>=0?"up":"down");
+blink(liveBalance,diff>=0?"up":"down");
+blink(totalBalance,diff>=0?"up":"down");
 }
-
-/* TOGGLES */
 function toggleTrade(){
 tradeActive=!tradeActive;
 holdActive=false;
-
 if(tradeActive){
-cycleStart = cycleStart || Date.now();
+cycleStart=cycleStart||Date.now();
 tradeBtn.className="btn cancel";
 tradeBtn.textContent="Cancel Trade";
 runProfit();
@@ -161,16 +308,11 @@ tradeBtn.className="btn start";
 tradeBtn.textContent="Start Trade";
 clearTimeout(profitLoop);
 clearTimeout(balanceLagTimer);
-profitValue=0;
-balance=START;
-cycleStart=0;
+profitValue=0; balance=START; cycleStart=0;
 }
-
 profit.textContent=(profitValue>=0?"+$":"-$")+Math.abs(profitValue).toFixed(2);
-setBalance(balance);
-saveState();
+setBalance(balance); saveState();
 }
-
 function toggleHold(){
 if(!tradeActive) return;
 holdActive=!holdActive;
@@ -178,24 +320,17 @@ holdBtn.textContent=holdActive?"Continue Trade":"Hold Trade";
 saveState();
 if(!holdActive) runProfit();
 }
+function goWithdraw(){ window.location.href="withdrawal.html"; }
 
-/* INIT ON PAGE LOAD */
-function init(){
 profit.textContent=(profitValue>=0?"+$":"-$")+Math.abs(profitValue).toFixed(2);
 setBalance(balance);
-
 if(tradeActive){
 tradeBtn.className="btn cancel";
 tradeBtn.textContent="Cancel Trade";
 if(!holdActive) runProfit();
 }
-
 if(holdActive) holdBtn.textContent="Continue Trade";
-}
-
-init();
 
 </script>
-
 </body>
 </html>
