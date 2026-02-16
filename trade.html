@@ -36,6 +36,8 @@ body.dark .card{background:var(--card-dark);}
 
 canvas{width:100%;height:300px;background:#0b0f14;border-radius:14px;margin-top:10px;transition:.35s;}
 
+body.dark canvas{background:#111114;}
+
 select{
 width:100%;padding:10px;border-radius:10px;margin-top:10px;
 border:1px solid var(--line);
@@ -134,7 +136,7 @@ $<span id="totalBalance">500.00</span>
 ============================ */
 const START=500;
 const TARGET_GAIN=130;
-const DURATION=5*60*1000; // 5 minutes per cycle
+const DURATION=5*60*1000;
 
 let tradeActive=localStorage.tradeActive==="true";
 let holdActive=localStorage.holdActive==="true";
@@ -258,6 +260,63 @@ function toggleTheme(){
 if(localStorage.getItem("theme")==="dark"){
   document.body.classList.add("dark");
 }
+
+/* ============================
+   CANDLESTICK SIMULATION
+============================ */
+const canvas=document.getElementById("chart");
+const ctx=canvas.getContext("2d");
+canvas.width=canvas.offsetWidth;
+canvas.height=canvas.offsetHeight;
+
+let candles=[];
+let candleCount=50;
+let basePrice=30000;
+
+for(let i=0;i<candleCount;i++){
+    let open=basePrice+(Math.random()-0.5)*200;
+    let close=open+(Math.random()-0.5)*100;
+    let high=Math.max(open,close)+Math.random()*50;
+    let low=Math.min(open,close)-Math.random()*50;
+    candles.push({open,close,high,low});
+}
+
+function drawCandles(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    let w=canvas.width/candleCount;
+    let maxH=Math.max(...candles.map(c=>c.high));
+    let minL=Math.min(...candles.map(c=>c.low));
+    let scale=canvas.height/(maxH-minL);
+    candles.forEach((c,i)=>{
+        let x=i*w + w*0.1;
+        let yOpen=canvas.height-(c.open-minL)*scale;
+        let yClose=canvas.height-(c.close-minL)*scale;
+        let yHigh=canvas.height-(c.high-minL)*scale;
+        let yLow=canvas.height-(c.low-minL)*scale;
+        ctx.strokeStyle=c.close>=c.open?'#00c389':'#ff3b3b';
+        ctx.lineWidth=2;
+        ctx.beginPath();
+        ctx.moveTo(x+w/2,yHigh);
+        ctx.lineTo(x+w/2,yLow);
+        ctx.stroke();
+        ctx.fillStyle=ctx.strokeStyle;
+        ctx.fillRect(x,yClose,w*0.8,yOpen-yClose||1);
+    });
+}
+
+function updateCandles(){
+    candles.shift();
+    let last= candles[candles.length-1];
+    let open=last.close;
+    let close=open+(Math.random()-0.5)*100;
+    let high=Math.max(open,close)+Math.random()*50;
+    let low=Math.min(open,close)-Math.random()*50;
+    candles.push({open,close,high,low});
+    drawCandles();
+}
+
+setInterval(updateCandles,1000);
+drawCandles();
 </script>
 </body>
 </html>
