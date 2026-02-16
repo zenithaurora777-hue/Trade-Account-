@@ -130,10 +130,11 @@ body.dark .theme {
 </div>
 
 <script>
+// Get current balance
 let balance = Number(localStorage.getItem("bal") || 0);
 document.getElementById("amount").value = "$" + balance;
 
-// Redirect if balance is zero
+// Block if balance is zero
 if(balance <= 0) {
   alert("No funds available to withdraw. Returning to Trade Room.");
   setTimeout(()=>{ window.location.href = "trade.html"; }, 1000);
@@ -148,15 +149,16 @@ const coinNetworks = {
   BNB: ["BEP20"]
 };
 
-// Wallet regex patterns (basic examples, can be adjusted)
+// Wallet regex patterns
 const walletRegex = {
-  USDT: /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$|^T[a-zA-Z0-9]{33}$/, // TRC20/TRC20/USDT-like
+  USDT: /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$|^T[a-zA-Z0-9]{33}$/,
   BTC: /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/,
   SOL: /^[1-9A-HJ-NP-Za-km-z]{32,44}$/,
   ETH: /^0x[a-fA-F0-9]{40}$/,
   BNB: /^bnb[a-z0-9]{39}$/
 };
 
+// Update network dropdown based on coin
 function updateNetwork() {
   let coin = document.getElementById("coin").value;
   let n = document.getElementById("network");
@@ -169,16 +171,17 @@ function updateNetwork() {
   });
 }
 
+// Show warning messages
 function showWarning(elementId, message) {
   document.getElementById(elementId).innerText = "¡ " + message;
 }
-
 function clearWarnings() {
   document.getElementById("walletWarn").innerText = "";
   document.getElementById("networkWarn").innerText = "";
   document.getElementById("amountWarn").innerText = "";
 }
 
+// Withdrawal logic
 function makeWithdrawal() {
   clearWarnings();
   let wallet = document.getElementById("wallet").value.trim();
@@ -204,13 +207,6 @@ function makeWithdrawal() {
     return;
   }
 
-  let tradeEndTime = Number(localStorage.getItem("tradeEndTime") || 0);
-  if(Date.now() < tradeEndTime){
-    alert("Withdrawal locked. Minimum trade duration not reached.");
-    window.location.href = "trade.html";
-    return;
-  }
-
   // Process withdrawal
   document.getElementById("loader").style.display = "block";
   document.getElementById("successMsg").innerText = "";
@@ -225,17 +221,15 @@ function makeWithdrawal() {
   }, 2000);
 }
 
+// Save withdrawal history
 function saveHistory(txt){
   let h = JSON.parse(localStorage.getItem("history") || "[]");
   h.unshift(new Date().toLocaleString() + " — " + txt);
   localStorage.setItem("history", JSON.stringify(h));
 }
 
+// Init
 window.onload = ()=>{
-  if(!localStorage.getItem("tradeEndTime")){
-    alert("No trade info. Returning to trade page.");
-    window.location.href = "trade.html";
-  }
   updateNetwork();
 }
 
@@ -243,7 +237,6 @@ function toggleTheme(){
   document.body.classList.toggle("dark");
   localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
 }
-
 if(localStorage.getItem("theme") === "dark") document.body.classList.add("dark");
 </script>
 </body>
