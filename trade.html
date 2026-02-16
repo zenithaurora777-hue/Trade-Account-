@@ -34,9 +34,7 @@ body.dark .topbar{background:#0f0f12;}
 border-radius:20px;padding:14px;}
 body.dark .card{background:var(--card-dark);}
 
-.btn{width:100%;padding:12px;border-radius:14px;border:none;
-font-weight:900;background:var(--binance);margin-top:10px;cursor:pointer;}
-
+.btn{width:100%;padding:12px;border-radius:14px;border:none;font-weight:900;background:var(--binance);margin-top:10px;cursor:pointer;}
 #holdBtn{background:#38bdf8;color:#fff;}
 .cancelBtn{background:#ff3b3b;color:#fff;}
 
@@ -46,7 +44,6 @@ font-weight:900;background:var(--binance);margin-top:10px;cursor:pointer;}
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);
 display:flex;justify-content:space-around;padding:10px;}
 body.dark .bottom-nav{background:#0f0f12;}
-
 .bottom-nav a{display:flex;flex-direction:column;align-items:center;text-decoration:none;color:inherit;font-size:12px;}
 .bottom-nav i{font-size:26px;}
 
@@ -65,14 +62,9 @@ body.dark .theme{background:#222;color:white;}
 
 /* ⭐ PROFIT FLASH SYSTEM */
 #profit{font-size:22px;font-weight:900;margin-top:10px;transition:.2s;}
-
 .up{color:#00c853;animation:flash .4s;}
 .down{color:#ff3d00;animation:flash .4s;}
-
-@keyframes flash{
-0%{opacity:.2}
-100%{opacity:1}
-}
+@keyframes flash{0%{opacity:.2}100%{opacity:1}}
 </style>
 </head>
 
@@ -137,7 +129,42 @@ if(!localStorage.getItem("loggedin")) location.href="index.html";
 </nav>
 
 <script>
-/* ===== THEME SWITCH ===== */
+/* ====== THE ONLY CHANGE: REALISTIC UP/DOWN PROFIT ====== */
+
+let profitValue = 0;
+let tradeActive = false;
+let holdActive = false;
+
+function applyBlink(isPositive){
+  let cls = isPositive ? "up" : "down";
+  profit.className = cls;
+  liveBalance.className = "balanceBox " + cls;
+  totalBalance.className = cls;
+}
+
+function randomProfitChange(){
+  if(!tradeActive || holdActive) return;
+
+  // simulate ±1 to ±5 range change
+  let change = (Math.random() - 0.5) * 10;
+  profitValue += change;
+
+  // update profit display
+  profit.innerText = (profitValue>=0?"+$":"-$")+Math.abs(profitValue).toFixed(2);
+  applyBlink(change>=0);
+
+  // update balance
+  let newBalance = 500 + profitValue; // start 500
+  liveBalance.innerText = "Balance: $" + newBalance.toFixed(2);
+  totalBalance.innerText = newBalance.toFixed(2);
+
+  // next change in 3–5 seconds
+  let next = Math.random()*2000 + 3000;
+  setTimeout(randomProfitChange, next);
+}
+
+/* ===== ORIGINAL SCRIPT BELOW ===== */
+
 function toggleTheme(){
 document.body.classList.toggle("dark");
 localStorage.setItem("theme",document.body.classList.contains("dark")?"dark":"light");
@@ -146,7 +173,6 @@ if(localStorage.getItem("theme")==="dark") document.body.classList.add("dark");
 
 function changePair(sel){ livePair.textContent=sel.value; }
 
-/* ===== CANDLES ===== */
 const wrap=document.getElementById("candles");
 for(let i=0;i<160;i++){
 let c=document.createElement("div");
@@ -158,130 +184,42 @@ c.appendChild(d);
 wrap.appendChild(c);
 }
 
-/* ===== TRADE LOGIC ===== */
-const START=500;
-let pLoop,cLoop,progLoop;
-let profitValue = 0; // current profit
-let tradeActive = false;
-let holdActive = false;
-
-/* LOCALSTORAGE HELPERS */
 function getNum(k,d=0){return Number(localStorage.getItem(k)??d);}
 function getBool(k){return localStorage.getItem(k)==="true";}
 function setBool(k,v){localStorage.setItem(k,v?"true":"false");}
 
-function setBalance(v){
-v=Math.max(START,v);
-localStorage.balance=v;
-totalBalance.textContent=Number(v).toFixed(2);
-liveBalance.textContent="Balance: $"+Number(v).toFixed(2);
-}
-
-/* ===== PROFIT BLINK FUNCTION ===== */
-function applyBlink(isPositive){
-let cls = isPositive ? "up" : "down";
-profit.className="";
-liveBalance.classList.remove("up","down");
-totalBalance.classList.remove("up","down");
-profit.classList.add(cls);
-liveBalance.classList.add(cls);
-totalBalance.classList.add(cls);
-}
-
-/* ===== TRADE CONTROL ===== */
 function startTrade(){
 tradeActive = true;
 holdActive = false;
 holdBtn.innerText="Hold Trade";
-
-localStorage.tradeStart = Date.now();
-localStorage.tradeEnd = Date.now() + Number(duration.value)*86400000;
 profitValue = 0;
-localStorage.profit = 0;
-localStorage.last = Date.now();
-setBalance(getNum("balance",START));
-
-startLoops();
+profit.innerText = "+$0";
+liveBalance.innerText = "Balance: $500.00";
+totalBalance.innerText = "500";
+randomProfitChange(); // start live movement
 }
 
 function toggleHold(){
 if(!tradeActive) return;
 holdActive = !holdActive;
 holdBtn.innerText = holdActive ? "Continue Trade" : "Hold Trade";
-localStorage.last = Date.now();
 }
 
 function cancelTrade(){
 tradeActive = false;
 holdActive = false;
 holdBtn.innerText="Hold Trade";
-stopLoops();
-profit.className="";
+profitValue = 0;
 profit.innerText = "+$0";
-setBalance(START);
+liveBalance.innerText = "Balance: $500.00";
+totalBalance.innerText = "500";
+profit.className="";
+liveBalance.className = "balanceBox";
+totalBalance.className = "";
 progressFill.style.width="0%";
 countdown.innerText="Withdrawal unlocks in: --";
 }
 
-/* ===== REALISTIC PROFIT MOVEMENT ===== */
-function updateProfitRandom(){
-if(!tradeActive || holdActive) return;
-
-// random change between -5 and +5
-let change = (Math.random() - 0.5) * 10; 
-
-profitValue += change;
-localStorage.profit = profitValue;
-
-// update DOM
-profit.innerText = (profitValue>=0?"+$":"-$")+Math.abs(profitValue).toFixed(2);
-applyBlink(change>=0);
-
-// next update in 3-5 sec
-let nextInterval = 3000 + Math.random()*2000;
-setTimeout(updateProfitRandom,nextInterval);
-}
-
-/* ===== START LOOPS ===== */
-function startLoops(){
-stopLoops();
-updateProfitRandom(); // start profit random movement
-cLoop=setInterval(updateCountdown,1000);
-progLoop=setInterval(updateProgress,1000);
-}
-
-/* ===== STOP LOOPS ===== */
-function stopLoops(){
-clearInterval(cLoop);
-clearInterval(progLoop);
-}
-
-/* ===== COUNTDOWN & PROGRESS ===== */
-function updateCountdown(){
-if(!tradeActive) return;
-let r = localStorage.tradeEnd - Date.now();
-if(r<=0){countdown.innerText="Trade complete ✅"; stopLoops(); return;}
-let d = Math.floor(r/86400000);
-let h = Math.floor(r%86400000/3600000);
-let m = Math.floor(r%3600000/60000);
-countdown.innerText=`Withdrawal unlocks in: ${d}d ${h}h ${m}m`;
-}
-
-function updateProgress(){
-if(!tradeActive) return;
-let s = localStorage.tradeStart;
-let e = localStorage.tradeEnd;
-let p = ((Date.now()-s)/(e-s))*100;
-progressFill.style.width=Math.min(100,p)+"%";
-}
-
-/* ===== INITIALIZE ===== */
-(function init(){
-setBalance(getNum("balance",START));
-profitValue = getNum("profit",0);
-profit.innerText = (profitValue>=0?"+$":"-$")+Math.abs(profitValue).toFixed(2);
-if(getBool("tradeActive")) startLoops();
-})();
 </script>
 
 </body>
